@@ -1,7 +1,7 @@
 import { For, Component, createSignal, createEffect, batch, ErrorBoundary, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
-// import { createTabList, Repl } from 'solid-repl';
-import { NavLink, useData, useParams } from 'solid-app-router';
+import Repl, { createTabList } from 'solid-repl/lib/repl';
+import { NavLink, useRouteData, useParams } from '@solidjs/router';
 import { ExamplesDataRoute } from './examples.data';
 
 import { compiler, formatter } from '../components/setupRepl';
@@ -9,7 +9,7 @@ import { useI18n } from '@solid-primitives/i18n';
 import { useRouteReadyState } from '../utils/routeReadyState';
 
 const Examples: Component = () => {
-  const data = useData<ExamplesDataRoute>();
+  const data = useRouteData<ExamplesDataRoute>();
   const [t] = useI18n();
   const params = useParams<{ id: string }>();
   const [tabs, setTabs] = createTabList([
@@ -88,7 +88,7 @@ const Examples: Component = () => {
                   </>
                 }
               >
-                {/* <Repl
+                <Repl
                   compiler={compiler}
                   formatter={formatter}
                   isHorizontal={true}
@@ -100,7 +100,7 @@ const Examples: Component = () => {
                   setTabs={setTabs}
                   current={current()}
                   setCurrent={setCurrent}
-                /> */}
+                />
               </ErrorBoundary>
             </Show>
           </div>

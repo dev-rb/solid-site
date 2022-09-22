@@ -8,9 +8,9 @@ import {
   on,
   createComputed,
 } from 'solid-js';
-import { Link, NavLink } from 'solid-app-router';
+import { Link, NavLink } from '@solidjs/router';
 import { useI18n } from '@solid-primitives/i18n';
-import { createIntersectionObserver } from '@solid-primitives/intersection-observer';
+import { createIntersectionObserver, makeIntersectionObserver } from '@solid-primitives/intersection-observer';
 import logo from '../assets/logo.svg';
 import ScrollShadow from './ScrollShadow/ScrollShadow';
 import Social from './Social';
@@ -122,14 +122,13 @@ const Nav: Component<{ showLogo?: boolean; filled?: boolean }> = (props) => {
     return showLogo() && 'ml-[56px]';
   };
 
-  const [observer] = createIntersectionObserver([], ([entry]) => {
+  const { add: intersectionObserver } = makeIntersectionObserver([], ([entry]) => {
     if (firstLoad) {
       firstLoad = false;
       return;
     }
     setLocked(entry.isIntersecting);
   });
-  observer;
   const showLogo = createMemo(() => props.showLogo || !locked());
 
   createComputed(
@@ -154,7 +153,7 @@ const Nav: Component<{ showLogo?: boolean; filled?: boolean }> = (props) => {
 
   return (
     <>
-      <div use:observer class="h-0" />
+      <div use:intersectionObserver class="h-0" />
       <div
         class="sticky top-0 z-50 dark:bg-solid-gray bg-white"
         classList={{ 'shadow-md': showLogo() }}
@@ -163,9 +162,8 @@ const Nav: Component<{ showLogo?: boolean; filled?: boolean }> = (props) => {
           <PageLoadingBar postion="top" active={showLogo() && routeReadyState().loading} />
           <nav class="relative px-3 lg:px-12 container lg:flex justify-between items-center max-h-18 z-20">
             <div
-              class={`absolute flex top-0 bottom-0 ${logoPosition()} nav-logo-bg dark:bg-solid-gray ${
-                showLogo() ? 'scale-100' : 'scale-0'
-              }`}
+              class={`absolute flex top-0 bottom-0 ${logoPosition()} nav-logo-bg dark:bg-solid-gray ${showLogo() ? 'scale-100' : 'scale-0'
+                }`}
               ref={logoEl}
             >
               <Link href="/" onClick={onClickLogo} noScroll class={`py-3 flex w-9 `}>
@@ -183,7 +181,7 @@ const Nav: Component<{ showLogo?: boolean; filled?: boolean }> = (props) => {
               <ul class="relative flex items-center overflow-auto no-scrollbar">
                 {/* Temporarily hide the blog */}
                 <For
-                  each={(t('global.nav') || []).filter((nav) => nav.path !== '/blog')}
+                  each={(t('global.nav') || []).filter((nav: { path: string; }) => nav.path !== '/blog')}
                   children={MenuLink}
                 />
                 <LanguageSelector ref={langBtnTablet} class="flex lg:hidden" />

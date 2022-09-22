@@ -1,6 +1,6 @@
 import { Component, For, Show, createSignal, createMemo } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { useData } from 'solid-app-router';
+import { useRouteData } from '@solidjs/router';
 import Footer from '../components/Footer';
 import { ResourcesDataProps } from './resources.data';
 import { Icon } from 'solid-heroicons';
@@ -137,7 +137,7 @@ const Resource: Component<Resource> = (props) => {
 
 const Resources: Component = () => {
   const [t] = useI18n();
-  const data = useData<ResourcesDataProps>();
+  const data = useRouteData<ResourcesDataProps>();
   const fs = new Fuse(data.list, {
     keys: ['author', 'title', 'categories', 'keywords', 'link', 'description'],
     threshold: 0.3,

@@ -1,8 +1,9 @@
 import { createEffect, createResource, createSignal } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { RouteDataFunc } from 'solid-app-router';
+import { RouteDataFunc } from '@solidjs/router';
 import { createCookieStorage } from '@solid-primitives/storage';
 import { createI18nContext } from '@solid-primitives/i18n';
+import { Setter } from 'solid-js';
 
 const langs: { [lang: string]: any } = {
   en: async () => (await import('../lang/en/en')).default(),
@@ -24,13 +25,15 @@ type DataParams = {
   page: string;
 };
 
+type StoreageType = Setter<{ dark: boolean, locale: string }>;
+
 const RootData: RouteDataFunc = (props) => {
   const [settings, set] = !isServer
     ? createCookieStorage<{ dark: string; locale: string }>()
     : createSignal({ dark: false, locale: 'en' });
   const browserLang = !isServer ? navigator.language.slice(0, 2) : 'en';
   if (props.location.query.locale) {
-    set('locale', props.location.query.locale);
+    set('locale' as keyof StoreageType, props.location.query.locale);
   } else if (!settings.locale && langs.hasOwnProperty(browserLang)) {
     set('locale', browserLang);
   }

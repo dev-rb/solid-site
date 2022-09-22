@@ -1,5 +1,5 @@
 import { useI18n } from '@solid-primitives/i18n';
-import { RouteDataFunc } from 'solid-app-router';
+import { RouteDataFunc } from '@solidjs/router';
 import { createResource } from 'solid-js';
 import { getTutorial, supportedTutorials, getTutorialDirectory } from '@solid.js/docs';
 
@@ -116,33 +116,29 @@ const TutorialData: RouteDataFunc = (props) => {
     },
     get nextUrl() {
       const data = directory();
-      return propogateUndefined`/tutorial/${
-        data &&
+      return propogateUndefined`/tutorial/${data &&
         data[data.findIndex((el: any) => el.internalName === paramList().id) + 1]?.internalName
-      }`;
+        }`;
     },
     get previousUrl() {
       const data = directory();
-      return propogateUndefined`/tutorial/${
-        data &&
+      return propogateUndefined`/tutorial/${data &&
         data[data.findIndex((el: any) => el.internalName === paramList().id) - 1]?.internalName
-      }`;
+        }`;
     },
     get nextLesson() {
       const data = directory();
-      return propogateUndefined`${
-        data &&
+      return propogateUndefined`${data &&
         data[data.findIndex((el: any) => el.internalName === paramList().id) + 1]?.lessonName
-      }`
+        }`
         ?.split('/')
         .pop();
     },
     get previousLesson() {
       const data = directory();
-      return propogateUndefined`${
-        data &&
+      return propogateUndefined`${data &&
         data[data.findIndex((el: any) => el.internalName === paramList().id) - 1]?.lessonName
-      }`
+        }`
         ?.split('/')
         .pop();
     },

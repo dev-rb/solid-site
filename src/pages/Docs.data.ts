@@ -1,4 +1,4 @@
-import { useParams, useLocation, RouteDataFunc } from 'solid-app-router';
+import { useParams, useLocation, RouteDataFunc } from '@solidjs/router';
 import { createResource } from 'solid-js';
 import { useI18n } from '@solid-primitives/i18n';
 import { getDoc, supportedDocs } from '@solid.js/docs';

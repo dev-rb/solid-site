@@ -1,4 +1,4 @@
-import { RouteDataFunc } from 'solid-app-router';
+import { RouteDataFunc } from '@solidjs/router';
 
 export type BlogInfo = {
   id?: string;

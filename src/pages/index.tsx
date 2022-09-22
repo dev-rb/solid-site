@@ -9,7 +9,7 @@ import {
   createMemo,
   createEffect,
 } from 'solid-js';
-import { Link, useData, useIsRouting } from 'solid-app-router';
+import { Link, useRouteData, useIsRouting } from '@solidjs/router';
 import { useI18n } from '@solid-primitives/i18n';
 import { createViewportObserver } from '@solid-primitives/intersection-observer';
 import iconBlocks1 from '../assets/icons/blocks1.svg';
@@ -35,7 +35,7 @@ const strength_icons: { [key: string]: string } = {
 
 const Home: Component<{}> = () => {
   const isRouting = useIsRouting();
-  const data = useData<{ benchmarks: Array<GraphData> }>();
+  // const data = useRouteData<{ benchmarks: Array<GraphData> }>();
   const [t] = useI18n();
   const [loadRepl, setLoadRepl] = createSignal(false);
   const [observeInteraction] = createViewportObserver({ threshold: 0.5 });
@@ -189,7 +189,7 @@ render(() => <CountingComponent />, document.getElementById("app"));`,
         </section>
         <section class="py-20 px-10 lg:px-10 flex flex-col space-y-10 lg:space-y-0 lg:flex-row lg:space-x-32 rtl:space-x-0">
           <div class="flex flex-wrap items-center flex-1 rtl:ml-10">
-            <Benchmarks list={data.benchmarks} />
+            {/* <Benchmarks list={data.benchmarks} /> */}
           </div>
           <div class="flex flex-col justify-center flex-1 bg-no-repeat">
             <img class="w-20" src={iconBlocks2} alt="" />

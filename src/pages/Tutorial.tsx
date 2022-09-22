@@ -12,7 +12,7 @@ import {
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
 // import { Repl, createTabList } from 'solid-repl';
-import { useData, NavLink } from 'solid-app-router';
+import { useRouteData, NavLink } from '@solidjs/router';
 import { Icon } from 'solid-heroicons';
 import { arrowLeft, arrowRight, chevronDown } from 'solid-heroicons/solid';
 
@@ -151,7 +151,7 @@ const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
 };
 
 const Tutorial: Component = () => {
-  const data = useData<TutorialRouteData>();
+  const data = useRouteData<TutorialRouteData>();
   const [t] = useI18n();
   let replEditor: any;
   const [tabs, setTabs] = createTabList([

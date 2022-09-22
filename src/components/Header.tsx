@@ -1,7 +1,7 @@
-import { Component, Switch, Match, Show, on, createEffect, createSignal } from 'solid-js';
+import { Component, Switch, Match, Show, on, createEffect, createSignal, JSX } from 'solid-js';
 import { Transition } from 'solid-transition-group';
 import { useI18n } from '@solid-primitives/i18n';
-import { useLocation } from 'solid-app-router';
+import { useLocation } from '@solidjs/router';
 import Nav from './Nav';
 import logo from '../assets/logo.svg';
 import wordmark from '../assets/wordmark.svg';
@@ -33,7 +33,7 @@ const Header: Component<{ title?: string }> = () => {
       { defer: true },
     ),
   );
-  const Title: Component = (props) => (
+  const Title: Component<{ children: JSX.Element }> = (props) => (
     <span class="inline-block transition-all duration-200">{props.children}</span>
   );
   return (

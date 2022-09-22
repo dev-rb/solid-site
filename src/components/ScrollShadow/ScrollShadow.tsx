@@ -1,6 +1,6 @@
-import { Component, onCleanup, onMount } from 'solid-js';
+import { Component, JSX, onCleanup, onMount } from 'solid-js';
 import { isServer } from 'solid-js/web';
-
+/* @refresh reload */
 type TShared = {
   direction: 'horizontal' | 'vertical';
   child: 'first' | 'last';
@@ -17,6 +17,7 @@ const ScrollShadow: Component<
   {
     class: string;
     classList?: { [key: string]: boolean };
+    children: JSX.Element;
   } & Omit<TShared, 'child'>
 > = (props) => {
   const { class: className, direction, shadowSize, initShadowSize } = props;
@@ -118,13 +119,11 @@ const Sentinel: Component<Omit<TShared, 'shadowSize' | 'initShadowSize'>> = (pro
     const right = rtl ? 'left' : 'right';
 
     if (direction === 'horizontal') {
-      return `position: ${isFirst ? 'absolute' : 'static'}; top: 0; ${
-        isFirst ? left : right
-      }: 0; height: 100%; width: 1px; ${isFirst ? '' : `flex-shrink: 0; ${marginLeft}: -1px;`}`;
+      return `position: ${isFirst ? 'absolute' : 'static'}; top: 0; ${isFirst ? left : right
+        }: 0; height: 100%; width: 1px; ${isFirst ? '' : `flex-shrink: 0; ${marginLeft}: -1px;`}`;
     }
-    return `position: ${isFirst ? 'absolute' : 'relative'}; left: 0; ${
-      isFirst ? 'top' : 'bottom'
-    }: 0; height: 1px; width: 100%`;
+    return `position: ${isFirst ? 'absolute' : 'relative'}; left: 0; ${isFirst ? 'top' : 'bottom'
+      }: 0; height: 1px; width: 100%`;
   };
   const style = () => `pointer-events: none; ${setPosition()}; `;
   return <div aria-hidden="true" style={style()}></div>;
@@ -145,17 +144,13 @@ const Shadow: Component<{ ref: any } & TShared> = (props) => {
     const right = rtl ? 'left' : 'right';
 
     if (direction === 'horizontal') {
-      return `top: 0; ${isFirst ? left : right}: 0; background: linear-gradient(to ${
-        isFirst ? right : left
-      }, rgba(255, 255, 255, 1), 50%, rgba(255, 255, 255, 0)); width: ${size}; height: 100%; ${
-        divEl ? `opacity: ${divEl.style.opacity};` : ''
-      }`;
+      return `top: 0; ${isFirst ? left : right}: 0; background: linear-gradient(to ${isFirst ? right : left
+        }, rgba(255, 255, 255, 1), 50%, rgba(255, 255, 255, 0)); width: ${size}; height: 100%; ${divEl ? `opacity: ${divEl.style.opacity};` : ''
+        }`;
     }
-    return `left: 0; ${isFirst ? 'top' : 'bottom'}: 0; background: linear-gradient(to ${
-      isFirst ? 'top' : 'bottom'
-    }, rgba(255, 255, 255, 1), 50%, rgba(255, 255, 255, 0)); width: ${size}; height: 28%; ${
-      divEl ? `opacity: ${divEl.style.opacity};` : ''
-    }`;
+    return `left: 0; ${isFirst ? 'top' : 'bottom'}: 0; background: linear-gradient(to ${isFirst ? 'top' : 'bottom'
+      }, rgba(255, 255, 255, 1), 50%, rgba(255, 255, 255, 0)); width: ${size}; height: 28%; ${divEl ? `opacity: ${divEl.style.opacity};` : ''
+      }`;
   };
   const style = () =>
     `position: absolute; z-index: 1; pointer-events: none; transition: 300ms opacity, 300ms transform; ${setPosition()};`;

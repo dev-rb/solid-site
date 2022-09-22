@@ -1,0 +1,1 @@
+declare module 'solid-repl/lib/repl';

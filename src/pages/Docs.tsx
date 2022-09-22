@@ -1,6 +1,6 @@
 import { Component, For, Show, Switch, Match, createEffect, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { useData } from 'solid-app-router';
+import { useRouteData } from '@solidjs/router';
 import { chevronDown, chevronRight } from 'solid-heroicons/solid';
 import { createViewportObserver } from '@solid-primitives/intersection-observer';
 import { Icon } from 'solid-heroicons';
@@ -11,7 +11,7 @@ import Footer from '../components/Footer';
 import { routeReadyState, useRouteReadyState } from '../utils/routeReadyState';
 
 const Docs: Component<{ hash?: string }> = (props) => {
-  const data = useData<DocData>();
+  const data = useRouteData<DocData>();
   const [current, setCurrent] = createSignal<string | null>(null);
   const [section, setSection] = createStore<Record<string, boolean>>({});
   const [toggleSections, setToggleSections] = createSignal(false);
