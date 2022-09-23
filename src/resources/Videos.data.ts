@@ -1,4 +1,4 @@
-import { Resource, ResourceCategory, ResourceType } from '../pages/resources';
+import { Resource, ResourceCategory, ResourceType } from '../routes/resources';
 
 const videos: Array<Resource> = [
   {

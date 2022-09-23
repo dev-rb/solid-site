@@ -10,24 +10,22 @@ import {
   batch,
   ErrorBoundary,
 } from 'solid-js';
-import { isServer } from 'solid-js/web';
-// import { Repl, createTabList } from 'solid-repl';
-import { useRouteData, NavLink } from '@solidjs/router';
+import { useRouteData, NavLink } from 'solid-app-router';
 import { Icon } from 'solid-heroicons';
-import { arrowLeft, arrowRight, chevronDown } from 'solid-heroicons/solid';
+import { arrowLeft, arrowRight, chevronDown, chevronDoubleRight } from 'solid-heroicons/solid';
 
-import Markdown from '../components/Markdown';
-import { compiler, formatter } from '../components/setupRepl';
-import type { TutorialDirectory, TutorialDirectoryItem, TutorialRouteData } from './Tutorial.data';
+import type { TutorialRouteData } from './Tutorial.data';
 import { useI18n } from '@solid-primitives/i18n';
 import Dismiss from 'solid-dismiss';
 import { useRouteReadyState } from '../utils/routeReadyState';
-
+import { LessonLookup } from '@solid.js/docs';
+import type { editor } from 'monaco-editor';
+import { Repl, ReplTab } from '../components/Repl';
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 interface DirectoryMenuProps {
-  directory?: Record<string, TutorialDirectory>;
-  current?: TutorialDirectoryItem;
+  directory?: Record<string, LessonLookup[]>;
+  current?: LessonLookup;
 }
 
 const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
@@ -37,10 +35,10 @@ const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
   let menuButton!: HTMLButtonElement;
   let search!: HTMLInputElement;
   const directory = createMemo(() => Object.entries(props.directory || {}));
-  const filteredDirectory = createMemo<[string, TutorialDirectory][]>(() => {
+  const filteredDirectory = createMemo<[string, LessonLookup[]][]>(() => {
     return (
       directory()
-        .map<[string, TutorialDirectory]>(([section, entries]) => [
+        .map<[string, LessonLookup[]]>(([section, entries]) => [
           section,
           // TODO: Refactor this to be more easily digesteable (it's not that bad)
           entries.filter((entry) =>
@@ -50,7 +48,7 @@ const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
           ),
         ])
         // Filter out sections that have no entries
-        .filter(([_, entries]) => entries.length > 0)
+        .filter(([, entries]) => entries.length > 0)
     );
   });
 
@@ -73,35 +71,37 @@ const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
       document.documentElement.style.scrollBehavior = 'auto';
       document.body.clientWidth; // reflow
 
-      listContainer.querySelector('.js-active')?.scrollIntoView();
+      const activeItem = listContainer.querySelector('.js-active');
+      if (activeItem) {
+        activeItem.scrollIntoView();
+        listContainer.scroll({ top: listContainer.scrollTop - search.offsetHeight }); // reflow
+      }
+
       window.scrollTo({ top: 0 });
       document.documentElement.style.scrollBehavior = 'smooth';
     }
   });
 
   return (
-    <div class="z-10 relative">
-      <div class="box-border pt-3 pb-2 rounded-t border-b-2 border-solid bg-white">
-        <button
-          class="py-2 px-10 flex items-center focus:outline-none space-x-1 group"
-          ref={menuButton}
-        >
-          <div class="flex-grow inline-flex flex-col items-baseline">
-            <h3 class="text-xl text-solid leading-none">{props.current?.lessonName}</h3>
-            <p class="block text-gray-500 text-md">{props.current?.description}</p>
-          </div>
+    <>
+      <button
+        class="py-2 px-10 flex items-center focus:outline-none space-x-1 group"
+        ref={menuButton}
+      >
+        <div class="flex-grow inline-flex flex-col items-baseline">
+          <h3 class="text-xl text-solid leading-none">{props.current?.lessonName}</h3>
+        </div>
 
-          <Icon
-            path={chevronDown}
-            class="h-8 -mb-1 transform transition group-hover:translate-y-0.5 duration-300"
-            classList={{ 'translate-y-0.5': showDirectory() }}
-          />
-        </button>
-      </div>
+        <Icon
+          path={chevronDown}
+          class="h-8 -mb-1 transform transition group-hover:translate-y-0.5 duration-300"
+          classList={{ 'translate-y-0.5': showDirectory() }}
+        />
+      </button>
       <Dismiss menuButton={menuButton} open={showDirectory} setOpen={setShowDirectory}>
         <ol
           ref={listContainer}
-          class="shadow absolute bg-white w-64 max-h-[50vh] left-8 overflow-auto rounded-b space-y-3"
+          class="shadow-lg rounded-br-lg rounded-bl-lg absolute bg-white dark:bg-solid-darkLighterBg w-64 max-h-[50vh] left-8 overflow-auto rounded-b space-y-3 z-10"
           classList={{ hidden: !showDirectory() }}
         >
           <li class="sticky top-0">
@@ -113,29 +113,29 @@ const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
               name="search"
               type="search"
               placeholder="Search..."
-              class="py-2 px-3 block w-full"
+              autocomplete="off"
+              class="py-2 px-3 block w-full text-black"
             />
           </li>
           <For each={filteredDirectory()}>
             {([section, entries], sectionIndex) => (
-              <li class="js-section-title">
+              <li class="js-section-title bg-3">
                 <p class="inline-block px-3 py-1 font-semibold">
                   {sectionIndex() + 1}. {section}
                 </p>
 
-                <ul class="divide-y box-border">
+                <ul class="divide-y divide-gray-500 box-border">
                   <For each={entries}>
                     {(entry, entryIndex) => (
                       <li>
                         <NavLink
-                          activeClass="js-active bg-blue-50"
-                          class="hover:bg-blue-100 py-3 px-4 block"
+                          activeClass="js-active bg-blue-50 dark:bg-solid-darkbg"
                           href={`/tutorial/${entry.internalName}`}
+                          class="hover:bg-blue-100 dark:hover:bg-solid-medium py-3 px-5 block"
                         >
-                          <p class="text-sm font-medium text-gray-900">
+                          <p class="text-sm font-medium text-gray-900 dark:text-gray-200">
                             {alphabet[entryIndex()]}. {entry.lessonName}
                           </p>
-                          <p class="text-sm text-gray-500">{entry.description}</p>
                         </NavLink>
                       </li>
                     )}
@@ -146,42 +146,41 @@ const DirectoryMenu: Component<DirectoryMenuProps> = (props) => {
           </For>
         </ol>
       </Dismiss>
-    </div>
+    </>
   );
 };
 
 const Tutorial: Component = () => {
   const data = useRouteData<TutorialRouteData>();
   const [t] = useI18n();
-  let replEditor: any;
-  const [tabs, setTabs] = createTabList([
+  let replEditor: editor.IStandaloneCodeEditor;
+  const [tabs, setTabs] = createSignal([
     {
-      name: 'main',
-      type: 'tsx',
+      name: 'main.jsx',
       source: '',
     },
   ]);
-  const [current, setCurrent] = createSignal('main.tsx');
+  const [current, setCurrent] = createSignal('main.jsx', { equals: false });
+  const [open, setOpen] = createSignal(true);
   let markDownRef!: HTMLDivElement;
 
   useRouteReadyState();
 
   createEffect(() => {
-    markDownRef.scrollTop = 0;
+    // markDownRef.scrollTop = 0;
     replEditor && replEditor.setScrollPosition({ scrollTop: 0 });
     const fileset = data.solved ? data.solvedJs : data.js;
     const files = fileset?.files;
     if (!files) return;
     batch(() => {
-      const newTabs = files.map((file: { name: string; type?: string; content: string }) => {
+      const newTabs = files.map((file) => {
         return {
-          name: file.name,
-          type: file.type || 'tsx',
+          name: file.name + (file.type ? `.${file.type}` : '.jsx'),
           source: file.content,
         };
       });
       setTabs(newTabs);
-      setCurrent('main.tsx');
+      setCurrent(newTabs[0].name);
     });
   });
 
@@ -189,23 +188,47 @@ const Tutorial: Component = () => {
     <Suspense fallback={<p>Loading...</p>}>
       <div
         dir="ltr"
-        class="md:grid"
-        style="height: calc(100vh - 64px); grid-template-columns: minmax(40%, 600px) auto"
+        class="md:grid transition-all duration-300 h-[calc(100vh-64px)]"
+        classList={{
+          'grid-cols-[minmax(40%,_600px)_auto]': open(),
+          'grid-cols-[minmax(100%,_600px)_auto]': !open(),
+        }}
       >
-        <div class="flex flex-col bg-gray-50 h-full overflow-hidden border-r-2 border-grey mb-10 md:mb-0">
-          <DirectoryMenu current={data.tutorialDirectoryEntry} directory={data.tutorialDirectory} />
+        <div class="flex flex-col bg-gray-50 dark:bg-solid-darkbg h-full overflow-hidden border-r-2 dark:border-solid-darkLighterBg border-grey mb-10 md:mb-0 ">
+          <div class="box-border pt-3 pb-2 rounded-t border-b-2 border-solid bg-white dark:bg-solid-darkLighterBg dark:border-solid-darkLighterBg">
+            <button
+              type="button"
+              class="hidden md:block mr-5 mt-1 float-right"
+              onClick={() => setOpen(!open())}
+            >
+              <Icon
+                path={chevronDoubleRight}
+                class="h-6 opacity-50 transition-all duration-300"
+                classList={{ '-rotate-180': !open() }}
+              />
+            </button>
+            <DirectoryMenu
+              current={data.tutorialDirectoryEntry}
+              directory={data.tutorialDirectory}
+            />
+          </div>
+          <Show when={data.markdown} fallback={''}>
+            <div
+              ref={markDownRef}
+              class="p-10 prose dark:prose-invert flex-1 max-w-full overflow-auto"
+            >
+              {data.markdown}
+            </div>
+          </Show>
 
-          <Markdown ref={markDownRef} class="p-10 flex-1 max-w-full overflow-auto">
-            {data.markdown || ''}
-          </Markdown>
-
-          <div class="py-4 px-10 flex items-center justify-between border-t-2">
+          <div class="py-4 px-10 flex items-center justify-between border-t-2 dark:border-solid-darkLighterBg">
             <Show
               when={data.solved}
               fallback={
                 <NavLink
                   class="inline-flex py-2 px-3 bg-solid-default hover:bg-solid-medium text-white rounded"
                   href={`/tutorial/${data.id}?solved`}
+                  onClick={() => setOpen(true)}
                 >
                   {t('tutorial.solve')}
                 </NavLink>
@@ -214,6 +237,7 @@ const Tutorial: Component = () => {
               <NavLink
                 class="inline-flex py-2 px-3 bg-solid-default hover:bg-solid-medium text-white rounded"
                 href={`/tutorial/${data.id}`}
+                onClick={() => setOpen(true)}
               >
                 {t('tutorial.reset')}
               </NavLink>
@@ -239,28 +263,26 @@ const Tutorial: Component = () => {
             </div>
           </div>
         </div>
-        <Show when={!isServer}>
+        <Show when={open()}>
           <ErrorBoundary
             fallback={
               <>Repl failed to load. You may be using a browser that doesn't support Web Workers.</>
             }
           >
-            {/* <Repl
-              onEditorReady={(editor) => {
-                replEditor = editor;
-              }}
-              compiler={compiler}
-              formatter={formatter}
-              isHorizontal={true}
-              interactive={true}
-              actionBar={true}
+            <Repl
+              layout='responsive'
+              isInteractive={true}
+              withActionBar={true}
               editableTabs={true}
-              dark={false}
-              tabs={tabs()}
-              setTabs={setTabs}
-              current={current()}
-              setCurrent={setCurrent}
-            /> */}
+            >
+              <For each={tabs()}>
+                {(tab) =>
+                  <ReplTab name={tab.name}>
+                    {tab.source}
+                  </ReplTab>
+                }
+              </For>
+            </Repl>
           </ErrorBoundary>
         </Show>
       </div>

@@ -1358,19 +1358,21 @@
   resolved "https://registry.npmjs.org/@sindresorhus/is/-/is-4.6.0.tgz"
   integrity sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==
 
-"@solid-primitives/clipboard@^1.2.7":
+"@solid-primitives/clipboard@^1.4.3":
   version "1.4.3"
-  resolved "https://registry.npmjs.org/@solid-primitives/clipboard/-/clipboard-1.4.3.tgz"
+  resolved "https://registry.yarnpkg.com/@solid-primitives/clipboard/-/clipboard-1.4.3.tgz#0757fa8a32bceb7e20fcee3507555f870101ff49"
   integrity sha512-uu2JI7PBw2knv2Y1MkX/Ewj0cxvDTXEdyfj1PDHGe5c8vzTltBLbzDhnftowJPka1u9JlxyB3e66+9HK8XjHBg==
   dependencies:
     "@solid-primitives/utils" "^3.0.2"
 
-"@solid-primitives/countdown@^1.0.9":
-  version "1.0.9"
-  resolved "https://registry.npmjs.org/@solid-primitives/countdown/-/countdown-1.0.9.tgz"
-  integrity sha512-QwIym7DjtLTAD9qfGJbYVvmYOVfAIY0Ed82PUpV1jsMbxlW/8KkZNgh1IZQuPdgNyrz9trnC5g1Ccp6koBakNA==
+"@solid-primitives/date@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@solid-primitives/date/-/date-2.0.2.tgz#8df44f36ec3432c939b4e7a06d079e8a4ead541f"
+  integrity sha512-/MQiEef5AMUKlYDJGZY1htvpOcj9YAvw3cijt+UZNlO6QLpSo9Jj7nGo6E9hQ6JteLmvLbGBK71+fnMNWdGYHQ==
   dependencies:
-    "@solid-primitives/timer" "^1.0.2"
+    "@solid-primitives/memo" "^1.0.2"
+    "@solid-primitives/timer" "^1.3.2"
+    "@solid-primitives/utils" "^3.0.2"
 
 "@solid-primitives/event-listener@^2.2.2":
   version "2.2.2"
@@ -1400,6 +1402,14 @@
     "@solid-primitives/rootless" "^1.1.3"
     "@solid-primitives/utils" "^3.0.2"
 
+"@solid-primitives/memo@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@solid-primitives/memo/-/memo-1.0.2.tgz#7a33216e665a94ac85413be206dacf3f295221d0"
+  integrity sha512-I4BKJAItiRxjR1ngc+gWsdpiz3V79LQdgxxRlFPp3K+8Oi2dolXweDlLKKX5qec8cSuhV99gTfsxEoVBMkzNgQ==
+  dependencies:
+    "@solid-primitives/scheduled" "1.0.1"
+    "@solid-primitives/utils" "^3.0.2"
+
 "@solid-primitives/rootless@^1.1.3":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@solid-primitives/rootless/-/rootless-1.1.3.tgz#6f1494e5511d38c3b6ed872d5c70dfe1f8e92897"
@@ -1407,7 +1417,7 @@
   dependencies:
     "@solid-primitives/utils" "^3.0.2"
 
-"@solid-primitives/scheduled@^1.0.0":
+"@solid-primitives/scheduled@1.0.1", "@solid-primitives/scheduled@^1.0.0":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@solid-primitives/scheduled/-/scheduled-1.0.1.tgz#e5b07452f39d27504c4ba1caa64d65020110c017"
   integrity sha512-zRyW9L4nYdL0yZktvJz/Ye9kVNa6UW26L71sZEqzzHnxvDidbT+mln4np7jqFrAeGiWMwWnRDR/ZvM0FK85jMw==
@@ -1422,7 +1432,7 @@
   resolved "https://registry.npmjs.org/@solid-primitives/throttle/-/throttle-1.2.0.tgz"
   integrity sha512-qYKYEgGl/nSCF+wq7H6zFFi8s2e/woFZJkZbCbyUrtbEIvCze4xSZRr64Xi067GlBE+T/N4LZX/htJmLfwkAeg==
 
-"@solid-primitives/timer@^1.0.2", "@solid-primitives/timer@^1.0.3":
+"@solid-primitives/timer@^1.0.3", "@solid-primitives/timer@^1.3.2":
   version "1.3.3"
   resolved "https://registry.npmjs.org/@solid-primitives/timer/-/timer-1.3.3.tgz"
   integrity sha512-R5+ScbGUXx9K/t3PfD6oyZoEnqvNpIfcl0LARihy0dim1agsO6zEgUVaQY9Whr5qopAUXxbhUjHgothVhAjJEg==
@@ -1432,9 +1442,9 @@
   resolved "https://registry.npmjs.org/@solid-primitives/utils/-/utils-3.0.2.tgz"
   integrity sha512-LCU3tVrJmyRqJ0ocG5uCEuUNqmGkcAC+cWpDEE49AuvtehkdQfv4CfqvdNJgs3eoQRQhLOrVcgd1bHFJY4lsrQ==
 
-"@solid.js/docs@^1.0.6":
+"@solid.js/docs@^1.0.48":
   version "1.0.48"
-  resolved "https://registry.npmjs.org/@solid.js/docs/-/docs-1.0.48.tgz"
+  resolved "https://registry.yarnpkg.com/@solid.js/docs/-/docs-1.0.48.tgz#d00df123606f29b80a06e91186a5aafda04d4338"
   integrity sha512-vjjae/lR0eUdQ40rar8IW8jA0vtBIcpEbM3COxQof1udXmimyLBk+TBBQFLjJ07Pt1cEvwT3mZdp4eS1gg0FEQ==
   dependencies:
     solid-jsx "^0.9.0"

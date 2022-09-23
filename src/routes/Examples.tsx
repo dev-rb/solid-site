@@ -1,21 +1,20 @@
-import { For, Component, createSignal, createEffect, batch, ErrorBoundary, Show } from 'solid-js';
+import { For, Component, createSignal, createEffect, batch, ErrorBoundary, Show, onMount } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import Repl, { createTabList } from 'solid-repl/lib/repl';
-import { NavLink, useRouteData, useParams } from '@solidjs/router';
+import { NavLink, useParams } from '@solidjs/router';
 import { ExamplesDataRoute } from './examples.data';
+import { useRouteData } from 'solid-start'
 
-import { compiler, formatter } from '../components/setupRepl';
 import { useI18n } from '@solid-primitives/i18n';
 import { useRouteReadyState } from '../utils/routeReadyState';
+import { Repl, ReplTab } from '../components/Repl';
 
 const Examples: Component = () => {
   const data = useRouteData<ExamplesDataRoute>();
   const [t] = useI18n();
   const params = useParams<{ id: string }>();
-  const [tabs, setTabs] = createTabList([
+  const [tabs, setTabs] = createSignal([
     {
       name: 'main',
-      type: 'tsx',
       source: '',
     },
   ]);
@@ -24,23 +23,27 @@ const Examples: Component = () => {
   useRouteReadyState();
 
   createEffect(async () => {
-    createEffect(async () => {
-      const exampleData = await fetch(`${location.origin}/examples/${params.id}.json`).then((r) =>
-        r.json(),
+    const exampleData = (await fetch(`${location.origin}/examples/${params.id}.json`).then((r) =>
+      r.json(),
+    )) as {
+      files: {
+        name: string;
+        type: string;
+        content: string | string[];
+      }[];
+      version?: string;
+    };
+    batch(() => {
+      const newTabs = exampleData.files.map(
+        (file: { name: string; type?: string; content: string | string[] }) => {
+          return {
+            name: file.name + (file.type ? `.${file.type}` : '.jsx'),
+            source: Array.isArray(file.content) ? file.content.join('\n') : file.content,
+          };
+        },
       );
-      batch(() => {
-        const newTabs = exampleData.files.map(
-          (file: { name: string; type?: string; content: string | string[] }) => {
-            return {
-              name: file.name,
-              type: file.type || 'tsx',
-              source: Array.isArray(file.content) ? file.content.join('\n') : file.content,
-            };
-          },
-        );
-        setTabs(newTabs);
-        setCurrent(`${newTabs[0].name}.tsx`);
-      });
+      setTabs(newTabs);
+      setCurrent(newTabs[0].name);
     });
   });
   return (
@@ -89,18 +92,19 @@ const Examples: Component = () => {
                 }
               >
                 <Repl
-                  compiler={compiler}
-                  formatter={formatter}
-                  isHorizontal={true}
-                  interactive={true}
-                  actionBar={true}
+                  layout='responsive'
+                  isInteractive={true}
+                  withActionBar={true}
                   editableTabs={true}
-                  dark={false}
-                  tabs={tabs()}
-                  setTabs={setTabs}
-                  current={current()}
-                  setCurrent={setCurrent}
-                />
+                >
+                  <For each={tabs()}>
+                    {(tab) =>
+                      <ReplTab name={tab.name}>
+                        {tab.source}
+                      </ReplTab>
+                    }
+                  </For>
+                </Repl>
               </ErrorBoundary>
             </Show>
           </div>

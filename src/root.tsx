@@ -8,13 +8,6 @@ import Header from './components/Header';
 // import RootData from './root.data';
 
 import './assets/main.css';
-import Home from './pages';
-import Docs from './pages/Docs';
-import Tutorial from './pages/Tutorial';
-import Examples from './pages/Examples';
-import Media from './pages/Media';
-import Resources from './pages/resources';
-import Blog from './pages/blog';
 
 export default function Root() {
   preventSmoothScrollOnTabbing();
@@ -32,13 +25,7 @@ export default function Root() {
                 <div>
                   <Routes>
                     <FileRoutes />
-                    <Route path={'/'} component={Home} />
-                    <Route path={'/docs/latest/api'} component={Docs} />
-                    <Route path={'/tutorial'} component={Tutorial} />
-                    <Route path={'/examples'} component={Examples} />
-                    <Route path={'/media'} component={Media} />
-                    <Route path={'/resources'} component={Resources} />
-                    <Route path={'/blog'} component={Blog} />
+
                   </Routes>
                 </div>
               </div>

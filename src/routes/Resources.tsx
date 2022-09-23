@@ -6,19 +6,19 @@ import { ResourcesDataProps } from './resources.data';
 import { Icon } from 'solid-heroicons';
 import Fuse from 'fuse.js';
 import {
-  code,
+  codeBracket,
   videoCamera,
   bookOpen,
   microphone,
-  terminal,
+  commandLine,
   chevronRight,
   chevronLeft,
   shieldCheck,
-  filter,
+  adjustmentsHorizontal,
 } from 'solid-heroicons/outline';
 import { useI18n } from '@solid-primitives/i18n';
-import createCountdown from '@solid-primitives/countdown';
-import { createIntersectionObserver } from '@solid-primitives/intersection-observer';
+import { createCountdown } from '@solid-primitives/date';
+import { createIntersectionObserver, makeIntersectionObserver } from '@solid-primitives/intersection-observer';
 import Dismiss from 'solid-dismiss';
 import { useRouteReadyState } from '../utils/routeReadyState';
 
@@ -57,8 +57,8 @@ const ResourceTypeIcons = {
   article: bookOpen,
   podcast: microphone,
   video: videoCamera,
-  library: code,
-  package: terminal,
+  library: codeBracket,
+  package: commandLine,
 };
 
 const Resource: Component<Resource> = (props) => {
@@ -66,7 +66,7 @@ const Resource: Component<Resource> = (props) => {
   const now = new Date();
   const published = new Date(0);
   published.setTime(props.published_at || 0);
-  const { days, hours } = createCountdown(now, () => published, -1);
+  const { days, hours } = createCountdown(now, () => published);
   const publish_detail = () => {
     if (days! > 1) {
       return t('resources.days_ago', { amount: days!.toString() }, '{{amount}} days ago');
@@ -193,14 +193,13 @@ const Resources: Component = () => {
 
   useRouteReadyState();
 
-  const [observer] = createIntersectionObserver([], ([entry]) => {
+  const { add: intersectionObserver } = makeIntersectionObserver([], ([entry]) => {
     if (firstLoad) {
       firstLoad = false;
       return;
     }
     setStickyBarActive(!entry.isIntersecting);
   });
-  observer;
 
   const onClickFiltersBtn = () => {
     if (window.scrollY >= floatingPosScrollY) return;
@@ -317,7 +316,7 @@ const Resources: Component = () => {
           ></div>
           <div class="absolute w-full h-full top-0 left-0 bg-white z-negative"></div>
           <div class="h-[45px] px-5 flex justify-between gap-1">
-            <div use:observer class="absolute top-[-62px] h-0" />
+            <div use:intersectionObserver class="absolute top-[-62px] h-0" />
             <input
               class="rounded border-solid h-full w-full border-gray-200 placeholder-opacity-50 placeholder-gray-500"
               placeholder={t('resources.search')}
@@ -330,7 +329,7 @@ const Resources: Component = () => {
               onClick={onClickFiltersBtn}
               ref={menuButton}
             >
-              <Icon class="h-7 w-7" path={filter} />
+              <Icon class="h-7 w-7" path={adjustmentsHorizontal} />
             </button>
           </div>
         </div>

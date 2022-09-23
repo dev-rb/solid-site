@@ -3,7 +3,7 @@ import downloadArrow from '../assets/download-arrow.svg';
 import Footer from '../components/Footer';
 import { useI18n } from '@solid-primitives/i18n';
 import { useRouteReadyState } from '../utils/routeReadyState';
-import createClipboard, { copyToClipboard } from '@solid-primitives/clipboard';
+import createClipboard, { copyToClipboard, makeClipboard } from '@solid-primitives/clipboard';
 
 const assets = [
   {
@@ -106,7 +106,7 @@ const AssetPanel: Component<{
 
 const Media: Component = () => {
   const [t] = useI18n();
-  const [setter] = createClipboard();
+  const [setter] = makeClipboard();
   copyToClipboard;
 
   useRouteReadyState();

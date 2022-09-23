@@ -1,1 +1,1 @@
-declare module 'solid-repl/lib/repl';
+declare module 'solid-repl/lib';
