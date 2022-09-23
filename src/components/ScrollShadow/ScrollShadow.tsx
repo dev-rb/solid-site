@@ -1,6 +1,6 @@
-import { Component, JSX, onCleanup, onMount } from 'solid-js';
-import { isServer } from 'solid-js/web';
-/* @refresh reload */
+import { ParentComponent, onCleanup, onMount } from 'solid-js';
+import { useAppContext } from '../../AppContext';
+
 type TShared = {
   direction: 'horizontal' | 'vertical';
   child: 'first' | 'last';
@@ -9,38 +9,27 @@ type TShared = {
   initShadowSize?: boolean;
 };
 
-/**
- *
- * child scrollable container should have already have overflow property and should have `position: relative;` in order to make Intersection Observer to work.
- */
-const ScrollShadow: Component<
+const ScrollShadow: ParentComponent<
   {
     class: string;
     classList?: { [key: string]: boolean };
-    children: JSX.Element;
+    locked: boolean;
   } & Omit<TShared, 'child'>
 > = (props) => {
-  const { class: className, direction, shadowSize, initShadowSize } = props;
-  const sentinelShadowState = new Map<HTMLElement, HTMLElement>();
+  const { direction, shadowSize, initShadowSize } = props;
+  const sentinelShadowState = new Map<HTMLElement, { el: HTMLElement; visible: boolean }>();
   let shadowFirstEl!: HTMLElement;
   let shadowLastEl!: HTMLElement;
-  let sentinelFirstEl = (
-    <Sentinel child="first" direction={direction} rtl={props.rtl} />
-  ) as HTMLElement;
-  let sentinelLastEl = (
-    <Sentinel child="last" direction={direction} rtl={props.rtl} />
-  ) as HTMLElement;
+  let sentinelFirstEl!: HTMLDivElement;
+  let sentinelLastEl!: HTMLDivElement;
+  let scrollableContainer!: HTMLDivElement;
   let init = true;
   let initResetSize = false;
-
-  // Won't work for SSR
-  const scrollableContainer = props.children as HTMLElement;
-  if (!isServer) {
-    scrollableContainer.appendChild(sentinelFirstEl);
-    scrollableContainer.appendChild(sentinelLastEl);
-  }
+  let isScrollable = false;
 
   const scrollHorizontally = (e: WheelEvent) => {
+    if (!isScrollable) return;
+
     e.preventDefault();
 
     const target = e.currentTarget as HTMLElement;
@@ -51,16 +40,16 @@ const ScrollShadow: Component<
     const resetInitShadowSize = () => {
       if (!initShadowSize) return;
       if (!init && !initResetSize) {
-        sentinelShadowState.forEach((item) => {
-          item.style.transform = '';
+        sentinelShadowState.forEach(({ el }) => {
+          el.style.transform = '';
         });
         initResetSize = true;
       }
     };
     const setInitShadowSize = () => {
       if (!initShadowSize) return;
-      sentinelShadowState.forEach((item) => {
-        item.style.transform = 'scaleX(3)';
+      sentinelShadowState.forEach(({ el }) => {
+        el.style.transform = 'scaleX(3)';
         shadowLastEl.style.transformOrigin = props.rtl ? 'left' : 'right';
         shadowFirstEl.style.transformOrigin = props.rtl ? 'right' : 'left';
       });
@@ -68,20 +57,18 @@ const ScrollShadow: Component<
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         const target = entry.target as HTMLElement;
-        const shadowEl = sentinelShadowState.get(target);
-        let isVisible = false;
-        if (entry.isIntersecting) {
-          isVisible = true;
-        }
-        shadowEl!.style.opacity = isVisible ? '0' : '1';
+        const { el: shadowEl } = sentinelShadowState.get(target)!;
+        shadowEl.style.opacity = entry.isIntersecting ? '0' : '1';
+        sentinelShadowState.set(target, { el: shadowEl, visible: entry.isIntersecting });
         resetInitShadowSize();
       });
+      isScrollable = ![...sentinelShadowState].every(([, { visible }]) => visible === true);
       init = false;
     });
 
-    scrollableContainer.addEventListener('wheel', scrollHorizontally);
-    sentinelShadowState.set(sentinelFirstEl, shadowFirstEl);
-    sentinelShadowState.set(sentinelLastEl, shadowLastEl);
+    scrollableContainer.addEventListener('wheel', scrollHorizontally, { passive: true });
+    sentinelShadowState.set(sentinelFirstEl, { el: shadowFirstEl, visible: false });
+    sentinelShadowState.set(sentinelLastEl, { el: shadowLastEl, visible: false });
     observer.observe(sentinelFirstEl);
     observer.observe(sentinelLastEl);
     setInitShadowSize();
@@ -95,6 +82,7 @@ const ScrollShadow: Component<
         shadowSize={shadowSize}
         rtl={props.rtl}
         ref={shadowFirstEl}
+        locked={props.locked}
       />
       <Shadow
         child="last"
@@ -102,13 +90,20 @@ const ScrollShadow: Component<
         shadowSize={shadowSize}
         rtl={props.rtl}
         ref={shadowLastEl}
+        locked={props.locked}
       />
-      {scrollableContainer}
+      <div class="relative flex items-center overflow-auto no-scrollbar" ref={scrollableContainer}>
+        {props.children}
+        <Sentinel child="first" direction={direction} rtl={props.rtl} ref={sentinelFirstEl} />
+        <Sentinel child="last" direction={direction} rtl={props.rtl} ref={sentinelLastEl} />
+      </div>
     </div>
   );
 };
 
-const Sentinel: Component<Omit<TShared, 'shadowSize' | 'initShadowSize'>> = (props) => {
+const Sentinel: ParentComponent<
+  Omit<TShared, 'shadowSize' | 'initShadowSize'> & { ref: HTMLDivElement }
+> = (props) => {
   const { direction, child } = props;
 
   const setPosition = () => {
@@ -126,13 +121,16 @@ const Sentinel: Component<Omit<TShared, 'shadowSize' | 'initShadowSize'>> = (pro
       }: 0; height: 1px; width: 100%`;
   };
   const style = () => `pointer-events: none; ${setPosition()}; `;
-  return <div aria-hidden="true" style={style()}></div>;
+  return <div aria-hidden="true" style={style()} ref={props.ref}></div>;
 };
 
-const Shadow: Component<{ ref: any } & TShared> = (props) => {
+const Shadow: ParentComponent<
+  { ref: HTMLElement | ((el: HTMLElement) => void); locked: boolean } & TShared
+> = (props) => {
   const { child, direction, ref, shadowSize: size } = props;
+  const context = useAppContext();
   const refCb = (el: HTMLElement) => {
-    ref(el);
+    (ref as (el: HTMLElement) => void)(el);
     divEl = el;
   };
   let divEl!: HTMLElement;
@@ -142,14 +140,15 @@ const Shadow: Component<{ ref: any } & TShared> = (props) => {
     const rtl = props.rtl;
     const left = rtl ? 'right' : 'left';
     const right = rtl ? 'left' : 'right';
+    const rgb = !context.isDark ? '255, 255, 255' : props.locked ? '68, 107, 158' : '34, 34,34';
 
     if (direction === 'horizontal') {
       return `top: 0; ${isFirst ? left : right}: 0; background: linear-gradient(to ${isFirst ? right : left
-        }, rgba(255, 255, 255, 1), 50%, rgba(255, 255, 255, 0)); width: ${size}; height: 100%; ${divEl ? `opacity: ${divEl.style.opacity};` : ''
+        }, rgba(${rgb}, 1), 50%, rgba(${rgb}, 0)); width: ${size}; height: 100%; ${divEl ? `opacity: ${divEl.style.opacity};` : ''
         }`;
     }
     return `left: 0; ${isFirst ? 'top' : 'bottom'}: 0; background: linear-gradient(to ${isFirst ? 'top' : 'bottom'
-      }, rgba(255, 255, 255, 1), 50%, rgba(255, 255, 255, 0)); width: ${size}; height: 28%; ${divEl ? `opacity: ${divEl.style.opacity};` : ''
+      }, rgba(${rgb}, 1), 50%, rgba(${rgb}, 0)); width: ${size}; height: 28%; ${divEl ? `opacity: ${divEl.style.opacity};` : ''
       }`;
   };
   const style = () =>

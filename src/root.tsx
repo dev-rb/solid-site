@@ -8,28 +8,29 @@ import Header from './components/Header';
 // import RootData from './root.data';
 
 import './assets/main.css';
+import { AppContextProvider } from './AppContext';
 
 export default function Root() {
-  preventSmoothScrollOnTabbing();
+  // preventSmoothScrollOnTabbing();
   return (
     <Html lang="en">
       <Head>
-        <Link />
+        {/* <Link /> */}
       </Head>
       <Body>
         <main class="min-h-screen">
           <Suspense>
-            <Lang>
-              <Header />
+            <Header />
+            <AppContextProvider>
+
               <div id="main-content">
                 <div>
                   <Routes>
                     <FileRoutes />
-
                   </Routes>
                 </div>
               </div>
-            </Lang>
+            </AppContextProvider>
           </Suspense>
         </main>
         <Scripts />

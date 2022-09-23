@@ -4,19 +4,19 @@
   "nav": [
     {
       "title": "Loslegen",
-      "path": "/guide"
-    },
-    {
-      "title": "Dokumentation",
-      "path": "/docs/latest/api"
-    },
-    {
-      "title": "Ressourcen",
-      "path": "/resources"
+      "path": "/guides"
     },
     {
       "title": "Anleitung",
       "path": "/tutorial"
+    },
+    {
+      "title": "API",
+      "path": "/docs/latest/api"
+    },
+    {
+      "title": "Ökosystem",
+      "path": "/ecosystem"
     },
     {
       "title": "Beispiele",

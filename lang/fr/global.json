@@ -5,19 +5,19 @@
   "nav": [
     {
       "title": "Commencer",
-      "path": "/guide"
-    },
-    {
-      "title": "Documentation",
-      "path": "/docs/latest/api"
-    },
-    {
-      "title": "Ressources",
-      "path": "/resources"
+      "path": "/guides"
     },
     {
       "title": "Tutoriel",
       "path": "/tutorial"
+    },
+    {
+      "title": "API",
+      "path": "/docs/latest/api"
+    },
+    {
+      "title": "Écosystème",
+      "path": "/ecosystem"
     },
     {
       "title": "Exemples",

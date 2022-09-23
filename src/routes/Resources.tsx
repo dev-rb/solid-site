@@ -1,81 +1,40 @@
 import { Component, For, Show, createSignal, createMemo } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { useRouteData } from '@solidjs/router';
 import Footer from '../components/Footer';
-import { ResourcesDataProps } from './resources.data';
-import { Icon } from 'solid-heroicons';
+import { useRouteData, useSearchParams } from '@solidjs/router';
+import { Resource, ResourceType, ResourceTypeIcons, PackageType } from '../resources/Ecosystem';
+import { ResourcesDataProps } from './Resources.data';
 import Fuse from 'fuse.js';
-import {
-  codeBracket,
-  videoCamera,
-  bookOpen,
-  microphone,
-  commandLine,
-  chevronRight,
-  chevronLeft,
-  shieldCheck,
-  adjustmentsHorizontal,
-} from 'solid-heroicons/outline';
+import { Icon } from 'solid-heroicons';
+import { chevronRight, chevronLeft, shieldCheck, adjustmentsHorizontal } from 'solid-heroicons/outline';
 import { useI18n } from '@solid-primitives/i18n';
 import { createCountdown } from '@solid-primitives/date';
-import { createIntersectionObserver, makeIntersectionObserver } from '@solid-primitives/intersection-observer';
+import { makeIntersectionObserver } from '@solid-primitives/intersection-observer';
+import { debounce } from '@solid-primitives/scheduled';
 import Dismiss from 'solid-dismiss';
 import { useRouteReadyState } from '../utils/routeReadyState';
+import { parseKeyword } from '../utils/parseKeyword';
+import { rememberSearch } from '../utils/rememberSearch';
 
-export enum ResourceType {
-  Article = 'article',
-  Video = 'video',
-  Podcast = 'podcast',
-  Library = 'library',
-  Package = 'package',
-}
-export enum ResourceCategory {
-  Primitives = 'primitive',
-  Routers = 'router',
-  Data = 'data',
-  UI = 'ui',
-  Plugins = 'plugin',
-  Starters = 'starters',
-  BuildUtilities = 'build_utility',
-  AddOn = 'add_on',
-  Testing = 'testing',
-  Educational = 'educational',
-}
-export interface Resource {
-  title: string;
-  link: string;
-  author?: string;
-  author_url?: string;
-  description?: string;
-  type: ResourceType;
-  categories: Array<ResourceCategory>;
-  official?: boolean; // If the resource is an official Solid resource
-  keywords?: Array<string>;
-  published_at?: number;
-}
-const ResourceTypeIcons = {
-  article: bookOpen,
-  podcast: microphone,
-  video: videoCamera,
-  library: codeBracket,
-  package: commandLine,
-};
-
-const Resource: Component<Resource> = (props) => {
+const AResource: Component<Resource> = (props) => {
   const [t] = useI18n();
   const now = new Date();
   const published = new Date(0);
   published.setTime(props.published_at || 0);
-  const { days, hours } = createCountdown(now, () => published);
+  const { days, hours } = createCountdown(published, now);
   const publish_detail = () => {
     if (days! > 1) {
-      return t('resources.days_ago', { amount: days!.toString() }, '{{amount}} days ago');
+      return t('resources.days_ago', { amount: days!.toString() }, '{{amount}} days ago') as string;
     }
-    return t('resources.hours_ago', { amount: hours!.toString() }, '{{amount}} hours ago');
+    return t(
+      'resources.hours_ago',
+      { amount: hours!.toString() },
+      '{{amount}} hours ago',
+    ) as string;
   };
 
   return (
-    <li class="py-6 border-b text-left hover:bg-gray-50 duration-100">
+    <li class="py-6 border-b text-left dark:border-solid-darkLighterBg hover:bg-gray-50 dark:hover:bg-gray-700 duration-100">
       <a
         class="relative grid grid-cols-10 md:grid-cols-12 grid-flow-col gap-2 text-solid"
         target="_blank"
@@ -83,18 +42,23 @@ const Resource: Component<Resource> = (props) => {
         rel="nofollow"
       >
         <div class="col-span-2 md:col-span-3 lg:col-span-1 flex items-center justify-center">
-          <figure class="flex justify-center content-center w-11 h-11 md:w-14 md:h-14 p-1.5 border-4 border-solid-medium rounded-full text-white">
-            <Icon class="text-solid-medium w-5/6" path={ResourceTypeIcons[props.type]} />
+          <figure class="flex justify-center content-center w-11 h-11 md:w-14 md:h-14 p-1.5 border-4 border-solid-medium dark:border-solid-darkdefault rounded-full text-white flex-shrink-0">
+            <Icon
+              class="text-solid-medium dark:text-solid-darkdefault w-5/6"
+              path={ResourceTypeIcons[props.type]}
+            />
           </figure>
         </div>
         <div class="col-start-3 col-end-[-1] md:col-span-7 lg:col-span-10 items-center">
           <div dir="ltr">
             <div class="text-lg">{props.title}</div>
             <Show when={props.description != ''}>
-              <div class="text-xs mt-2 text-black mb-3 block">{props.description}</div>
+              <div class="text-xs mt-2 text-black dark:text-white mb-3 block">
+                {props.description}
+              </div>
             </Show>
             <Show when={props.author && !props.author_url}>
-              <div class="text-xs mt-3 text-gray-500 block">
+              <div class="text-xs mt-3 text-gray-500 dark:text-gray-300 block">
                 {t('resources.by')} {props.author}
               </div>
             </Show>
@@ -105,7 +69,7 @@ const Resource: Component<Resource> = (props) => {
                 rel="noopener"
                 href={props.author_url}
                 target="_blank"
-                class="text-xs text-gray-500 inline hover:text-solid-medium"
+                class="text-xs text-gray-500 dark:text-gray-300 inline hover:text-solid-medium"
               >
                 {t('resources.by')} {props.author}
               </a>
@@ -142,41 +106,35 @@ const Resources: Component = () => {
     keys: ['author', 'title', 'categories', 'keywords', 'link', 'description'],
     threshold: 0.3,
   });
-  const [keyword, setKeyword] = createSignal(globalThis.location.hash.replace('#', ''));
+  const [searchParams] = useSearchParams();
+  const [keyword, setKeyword] = createSignal(parseKeyword(searchParams.search || ''));
+  const debouncedKeyword = debounce((str: string) => setKeyword(str), 250);
+  rememberSearch(keyword);
+  const resources = createMemo(() => {
+    if (keyword() == '') {
+      return data.list;
+    }
+    return fs.search(keyword()).map((result) => result.item);
+  });
   const [filtered, setFiltered] = createStore({
     // Produces a base set of filtered results
-    resources: createMemo(() => {
-      if (keyword() == '') {
-        return data.list;
-      }
-      return fs.search(keyword()).map((result) => result.item);
-    }),
+    resources,
     // Currently user enabled filters
-    enabledTypes: [] as ResourceType[],
-    enabledCategories: [] as ResourceCategory[],
+    enabledTypes: [] as (ResourceType | PackageType)[],
     // Final list produces that applies enabled types and categories
-    get list(): Array<Resource> {
-      let resources = this.resources().filter((item) => {
+    get list() {
+      const filtered = resources().filter((item) => {
         if (this.enabledTypes.length !== 0) {
           return this.enabledTypes.indexOf(item.type) !== -1;
-        } else if (this.enabledCategories.length !== 0) {
-          return this.enabledCategories.filter((cat) => item.categories.includes(cat)).length !== 0;
         }
         return true;
       });
-      resources.sort((b, a) => (a.published_at || 0) - (b.published_at || 0));
-      return resources;
-    },
-    // Retrieve a list categories that have resources
-    get categories() {
-      return (this.resources() as Resource[]).reduce<ResourceCategory[]>(
-        (memo, resource) => [...memo, ...resource.categories],
-        [],
-      );
+      filtered.sort((b, a) => (a.published_at || 0) - (b.published_at || 0));
+      return filtered;
     },
     // Retrieve a list of type counts
     get counts() {
-      return (this.resources() as Resource[]).reduce<{ [key: string]: number }>(
+      return resources().reduce<{ [key: string]: number }>(
         (memo, resource) => ({
           ...memo,
           [resource.type]: memo[resource.type] ? memo[resource.type] + 1 : 1,
@@ -200,6 +158,7 @@ const Resources: Component = () => {
     }
     setStickyBarActive(!entry.isIntersecting);
   });
+  intersectionObserver;
 
   const onClickFiltersBtn = () => {
     if (window.scrollY >= floatingPosScrollY) return;
@@ -208,24 +167,27 @@ const Resources: Component = () => {
 
   const filtersClickScrollToTop = () => {
     const top = toggleFilters() ? floatingPosScrollY : 0;
-    // @ts-ignore
-    window.scrollTo({ top, behavior: 'instant' });
+    window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
   };
 
   return (
     <div class="flex flex-col relative">
       <div class="md:grid md:grid-cols-12 container p-5 gap-6 relative">
-        <div class="py-5 md:col-span-5 lg:col-span-3 md:overflow-auto md:p-5 md:sticky md:top-20 rounded md:h-[82vh]">
-          <div class="text-xs bg-gray-100 p-4 rounded" innerHTML={t('resources.cta')}></div>
+        <div class="py-5 md:col-span-5 lg:col-span-3 md:overflow-auto md:p-5 md:sticky md:top-20 rounded md:h-[calc(100vh-80px)]">
+          <div
+            class="text-xs bg-gray-100 dark:bg-solid-darkLighterBg p-4 rounded"
+            innerHTML={t('resources.cta')}
+          ></div>
           <div class="hidden md:block">
             <input
-              class="my-5 rounded border-solid w-full border-gray-200 placeholder-opacity-50 placeholder-gray-500"
+              class="my-5 rounded border-solid w-full border-gray-400 border bg-transparent p-3 placeholder-opacity-50 placeholder-gray-500 dark:placeholder-white"
               placeholder={t('resources.search')}
               value={keyword()}
-              onInput={(evt) => setKeyword(evt.currentTarget!.value)}
+              onInput={(evt) => debouncedKeyword(evt.currentTarget.value)}
+              onChange={(evt) => setKeyword(evt.currentTarget.value)}
               type="text"
             />
-            <h3 class="text-xl text-solid-default border-b mb-4 font-semibold border-solid pb-2">
+            <h3 class="text-xl text-solid-default dark:text-solid-darkdefault dark:border-solid-darkLighterBg border-b mb-4 font-semibold border-solid pb-2">
               {t('resources.types')}
             </h3>
             <div class="flex flex-col space-y-2">
@@ -240,7 +202,7 @@ const Resources: Component = () => {
                         if (pos === -1) {
                           return [...arr, type];
                         } else {
-                          let newArray = arr.slice();
+                          const newArray = arr.slice();
                           newArray.splice(pos, 1);
                           return newArray;
                         }
@@ -249,13 +211,16 @@ const Resources: Component = () => {
                     classList={{
                       'opacity-30 cursor-default': !filtered.counts[type],
                       'hover:opacity-60': !!filtered.counts[type],
-                      'bg-gray-100': filtered.enabledTypes.indexOf(type) !== -1,
+                      'bg-gray-100 dark:bg-gray-700': filtered.enabledTypes.indexOf(type) !== -1,
                     }}
-                    class="grid grid-cols-5 lg:grid-cols-6 items-center w-full text-sm py-3 text-left border rounded-md"
+                    class="grid grid-cols-5 lg:grid-cols-6 items-center w-full text-sm py-3 text-left border rounded-md dark:border-solid-darkLighterBg"
                   >
                     <div class="col-span-1 lg:col-span-2 flex justify-center px-2">
-                      <figure class="flex justify-center content-center w-10 h-10 p-1.5 border-4 border-solid rounded-full text-white">
-                        <Icon class="text-solid-medium w-5/6" path={ResourceTypeIcons[type]} />
+                      <figure class="flex justify-center content-center w-10 h-10 p-1.5 border-4 border-solid rounded-full text-white flex-shrink-0">
+                        <Icon
+                          class="text-solid-medium dark:text-solid-darkdefault w-5/6"
+                          path={ResourceTypeIcons[type]}
+                        />
                       </figure>
                     </div>
                     <div class="col-span-3 rtl:text-right lg:col-span-3">
@@ -270,40 +235,6 @@ const Resources: Component = () => {
                 )}
               </For>
             </div>
-            <h3 class="text-xl mt-8 text-solid-default border-b font-semibold border-solid pb-2">
-              {t('resources.categories')}
-            </h3>
-
-            <For each={Object.entries(ResourceCategory).sort()}>
-              {([name, id]) => {
-                const exists = filtered.categories.indexOf(id) !== -1;
-                return (
-                  <button
-                    onClick={() => {
-                      filtersClickScrollToTop();
-                      setFiltered('enabledCategories', (arr) => {
-                        const pos = arr.indexOf(id);
-                        if (pos === -1) {
-                          return [...arr, id];
-                        } else {
-                          let newArray = arr.slice();
-                          newArray.splice(pos, 1);
-                          return newArray;
-                        }
-                      });
-                    }}
-                    classList={{
-                      'opacity-20 cursor-default': !exists,
-                      'hover:opacity-60': exists,
-                      'bg-gray-50': filtered.enabledCategories.indexOf(id) !== -1,
-                    }}
-                    class="block w-full text-sm py-4 pl-4 ltr:text-left rtl:text-right border-b"
-                  >
-                    <span>{t(`resources.categories_list.${name.toLowerCase()}`, {}, name)}</span>
-                  </button>
-                );
-              }}
-            </For>
           </div>
         </div>
 
@@ -314,18 +245,19 @@ const Resources: Component = () => {
               'shadow-md': stickyBarActive(),
             }}
           ></div>
-          <div class="absolute w-full h-full top-0 left-0 bg-white z-negative"></div>
+          <div class="absolute w-full h-full top-0 left-0 bg-white dark:bg-neutral-600 z-negative"></div>
           <div class="h-[45px] px-5 flex justify-between gap-1">
             <div use:intersectionObserver class="absolute top-[-62px] h-0" />
             <input
-              class="rounded border-solid h-full w-full border-gray-200 placeholder-opacity-50 placeholder-gray-500"
+              class="rounded border border-solid h-full w-full border-gray-400 p-3 placeholder-opacity-50 placeholder-gray-500 dark:bg-gray-500 dark:placeholder-gray-200"
               placeholder={t('resources.search')}
               value={keyword()}
-              onInput={(evt) => setKeyword(evt.currentTarget!.value)}
+              onInput={(evt) => debouncedKeyword(evt.currentTarget.value)}
+              onChange={(evt) => setKeyword(evt.currentTarget.value)}
               type="text"
             />
             <button
-              class="lg:hidden h-full w-[45px] flex-shrink-0 border-gray-300 border rounded-lg flex justify-center items-center text-solid-medium"
+              class="lg:hidden h-full w-[45px] flex-shrink-0 border-gray-300 border rounded-lg flex justify-center items-center text-solid-medium dark:text-solid-darkdefault"
               onClick={onClickFiltersBtn}
               ref={menuButton}
             >
@@ -352,7 +284,7 @@ const Resources: Component = () => {
             }
             style={{ height: 'calc(100vh - 8rem)', top: '8rem' }}
           >
-            <h3 class="text-xl text-solid-default border-b mb-4 font-semibold border-solid pb-2">
+            <h3 class="text-xl text-solid-default dark:text-solid-darkdefault border-b mb-4 font-semibold border-solid pb-2">
               {t('resources.types')}
             </h3>
             <div class="flex flex-col space-y-2">
@@ -367,7 +299,7 @@ const Resources: Component = () => {
                         if (pos === -1) {
                           return [...arr, type];
                         } else {
-                          let newArray = arr.slice();
+                          const newArray = arr.slice();
                           newArray.splice(pos, 1);
                           return newArray;
                         }
@@ -376,13 +308,16 @@ const Resources: Component = () => {
                     classList={{
                       'opacity-30 cursor-default': !filtered.counts[type],
                       'hover:opacity-60': !!filtered.counts[type],
-                      'bg-gray-100': filtered.enabledTypes.indexOf(type) !== -1,
+                      'bg-gray-100 dark:bg-gray-700': filtered.enabledTypes.indexOf(type) !== -1,
                     }}
                     class="grid grid-cols-5 lg:grid-cols-6 items-center w-full text-sm py-3 text-left border rounded-md"
                   >
                     <div class="col-span-1 lg:col-span-2 flex justify-center px-2">
                       <figure class="flex justify-center content-center w-10 h-10 p-1.5 border-4 border-solid rounded-full text-white">
-                        <Icon class="text-solid-medium w-5/6" path={ResourceTypeIcons[type]} />
+                        <Icon
+                          class="text-solid-medium dark:text-solid-darkdefault w-5/6"
+                          path={ResourceTypeIcons[type]}
+                        />
                       </figure>
                     </div>
                     <div class="col-span-3 rtl:text-right lg:col-span-3">
@@ -397,40 +332,6 @@ const Resources: Component = () => {
                 )}
               </For>
             </div>
-            <h3 class="text-xl mt-8 text-solid-default border-b font-semibold border-solid pb-2">
-              {t('resources.categories')}
-            </h3>
-
-            <For each={Object.entries(ResourceCategory).sort()}>
-              {([name, id]) => {
-                const exists = filtered.categories.indexOf(id) !== -1;
-                return (
-                  <button
-                    onClick={() => {
-                      filtersClickScrollToTop();
-                      setFiltered('enabledCategories', (arr) => {
-                        const pos = arr.indexOf(id);
-                        if (pos === -1) {
-                          return [...arr, id];
-                        } else {
-                          let newArray = arr.slice();
-                          newArray.splice(pos, 1);
-                          return newArray;
-                        }
-                      });
-                    }}
-                    classList={{
-                      'opacity-20 cursor-default': !exists,
-                      'hover:opacity-60': exists,
-                      'bg-gray-50': filtered.enabledCategories.indexOf(id) !== -1,
-                    }}
-                    class="block w-full text-sm py-4 pl-4 ltr:text-left rtl:text-right border-b"
-                  >
-                    <span>{t(`resources.categories_list.${name.toLowerCase()}`, {}, name)}</span>
-                  </button>
-                );
-              }}
-            </For>
           </div>
         </Dismiss>
 
@@ -440,7 +341,7 @@ const Resources: Component = () => {
             fallback={<div class="p-10 text-center">No resources found.</div>}
           >
             <ul>
-              <For each={filtered.list}>{(resource) => <Resource {...resource} />}</For>
+              <For each={filtered.list}>{(resource) => <AResource {...resource} />}</For>
             </ul>
           </Show>
         </div>

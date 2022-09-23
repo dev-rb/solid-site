@@ -25,12 +25,12 @@
     ],
     "facts": [
       {
-        "label": "6.4kb",
+        "label": "7kb",
         "detail": "Minified + Gzipped",
         "link": "https://bundlephobia.com/package/solid-js@1.2.1"
       },
       {
-        "label": "12k+",
+        "label": "21k+",
         "detail": "Github Yıldızı",
         "link": "https://star-history.t9t.io/#solidjs/solid"
       },
@@ -89,7 +89,8 @@
         "Async & Concurrent Rendering",
         "Implicit Delegation",
         "SSR & Hydration",
-        "Directives"
+        "Directives",
+        "Streaming"
       ]
     },
     "benchmarks": {

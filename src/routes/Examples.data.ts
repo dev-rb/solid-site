@@ -75,6 +75,5 @@ const ExamplesData = () => ({
   list,
 });
 
-export default ExamplesData;
-
 export type ExamplesDataRoute = ReturnType<typeof ExamplesData>;
+export default ExamplesData;

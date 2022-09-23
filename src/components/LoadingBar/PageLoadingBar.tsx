@@ -1,14 +1,13 @@
 import { Component } from 'solid-js';
 
 const PageLoadingBar: Component<{
-  postion?: 'top' | 'bottom';
+  postion: 'top' | 'bottom';
   active: boolean;
 }> = (props) => {
   const duration = 8000;
-  const delay = 250;
+  // delay property is not included, instead its within keyframes in order to work with Safari
   const animationName = 'Page-Loading-Bar';
-  const animationValue = () =>
-    props.active ? `${animationName} ${duration}ms ${delay}ms infinite` : 'none';
+  const animationValue = () => (props.active ? `${animationName} ${duration}ms infinite` : 'none');
 
   return (
     <div
