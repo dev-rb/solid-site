@@ -35,7 +35,7 @@ const Header: ParentComponent<{ title?: string }> = () => {
   const guideName = createMemo(() => {
     if (context.guides) {
       const resource = location.pathname.slice('/guides/'.length);
-      return 'context.guides.find((metadata) => metadata.resource == resource)?.title';
+      return context.guides.find((metadata) => metadata.resource == resource)?.title;
     }
   });
 

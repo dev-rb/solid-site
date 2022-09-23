@@ -20,9 +20,8 @@ export default function Root() {
       <Body>
         <main class="min-h-screen">
           <Suspense>
-            <Header />
             <AppContextProvider>
-
+              <Header />
               <div id="main-content">
                 <div>
                   <Routes>

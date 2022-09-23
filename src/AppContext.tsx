@@ -85,7 +85,7 @@ export const AppContextProvider: ParentComponent = (props) => {
       ? true
       : settings.dark === 'false'
         ? false
-        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        : true;
 
   createEffect(() => set('locale', i18n[1].locale()), cookieOptions);
   createEffect(() => {
