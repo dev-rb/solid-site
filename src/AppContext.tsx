@@ -3,6 +3,8 @@ import { Meta, Title, useRouteData, useParams, useLocation } from 'solid-start';
 import { createCookieStorage } from '@solid-primitives/storage';
 import { createI18nContext, I18nContext } from '@solid-primitives/i18n';
 import { ResourceMetadata, getGuideDirectory } from '@solid.js/docs';
+import { isServer } from 'solid-js/web';
+import { createServerData$ } from 'solid-start/server';
 
 interface AppContextInterface {
   isDark: boolean;
@@ -17,26 +19,26 @@ const AppContext = createContext<AppContextInterface>({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// const langs: { [lang: string]: () => Promise<any> } = {
-//   en: async () => (await import('../lang/en/en')).default(),
-//   it: async () => (await import('../lang/it/it')).default(),
-//   de: async () => (await import('../lang/de/de')).default(),
-//   pt: async () => (await import('../lang/pt/pt')).default(),
-//   ja: async () => (await import('../lang/ja/ja')).default(),
-//   fr: async () => (await import('../lang/fr/fr')).default(),
-//   id: async () => (await import('../lang/id/id')).default(),
-//   he: async () => (await import('../lang/he/he')).default(),
-//   ru: async () => (await import('../lang/ru/ru')).default(),
-//   fa: async () => (await import('../lang/fa/fa')).default(),
-//   tr: async () => (await import('../lang/tr/tr')).default(),
-//   tl: async () => (await import('../lang/tl/tl')).default(),
-//   'ko-kr': async () => (await import('../lang/ko-kr/ko-kr')).default(),
-//   'zh-cn': async () => (await import('../lang/zh-cn/zh-cn')).default(),
-//   'zh-tw': async () => (await import('../lang/zh-tw/zh-tw')).default(),
-//   es: async () => (await import('../lang/es/es')).default(),
-//   pl: async () => (await import('../lang/pl/pl')).default(),
-//   uk: async () => (await import('../lang/uk/uk')).default(),
-// };
+const langs: { [lang: string]: () => Promise<any> } = {
+  en: async () => (await import('../lang/en/en')).default(),
+  it: async () => (await import('../lang/it/it')).default(),
+  de: async () => (await import('../lang/de/de')).default(),
+  pt: async () => (await import('../lang/pt/pt')).default(),
+  ja: async () => (await import('../lang/ja/ja')).default(),
+  fr: async () => (await import('../lang/fr/fr')).default(),
+  id: async () => (await import('../lang/id/id')).default(),
+  he: async () => (await import('../lang/he/he')).default(),
+  ru: async () => (await import('../lang/ru/ru')).default(),
+  fa: async () => (await import('../lang/fa/fa')).default(),
+  tr: async () => (await import('../lang/tr/tr')).default(),
+  tl: async () => (await import('../lang/tl/tl')).default(),
+  'ko-kr': async () => (await import('../lang/ko-kr/ko-kr')).default(),
+  'zh-cn': async () => (await import('../lang/zh-cn/zh-cn')).default(),
+  'zh-tw': async () => (await import('../lang/zh-tw/zh-tw')).default(),
+  es: async () => (await import('../lang/es/es')).default(),
+  pl: async () => (await import('../lang/pl/pl')).default(),
+  uk: async () => (await import('../lang/uk/uk')).default(),
+};
 
 // Some browsers does not map correctly to some locale code
 // due to offering multiple locale code for similar language (e.g. tl and fil)
@@ -51,21 +53,27 @@ type DataParams = {
 };
 
 export const AppContextProvider: ParentComponent = (props) => {
-  const data = useRouteData<{ isDark: true; i18n: ReturnType<typeof createI18nContext> }>();
+  // const data = useRouteData<{ isDark: true; i18n: ReturnType<typeof createI18nContext> }>();
 
   const now = new Date();
   const cookieOptions = {
     expires: new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()),
   };
   const [settings, set] = createCookieStorage();
-  // const browserLang = navigator.language.slice(0, 2);
+  const browserLang = !isServer ? navigator.language.slice(0, 2) : 'en';
   const sParams = useParams<{ locale: string }>();
   const location = useLocation();
+
   if (sParams.locale) {
     set('locale', sParams.locale, cookieOptions);
+  } else if (!settings.locale && langs.hasOwnProperty(browserLang)) {
+    set('locale', browserLang);
   }
+
   const i18n = createI18nContext({}, (settings.locale || 'en') as string);
+
   const [t, { add, locale }] = i18n;
+
   const params = (): DataParams => {
     const locale = i18n[1].locale();
     let page = location.pathname.slice(1);
@@ -78,7 +86,7 @@ export const AppContextProvider: ParentComponent = (props) => {
     return { locale, page };
   };
 
-  const [lang] = createResource(params, ({ locale }) => locale);
+  const lang = createServerData$(({ locale }, _) => langs[locale](), { key: params });
   const [guidesList] = createResource(params, ({ locale }) => getGuideDirectory(locale));
   const isDark = () =>
     settings.dark === 'true'
@@ -90,10 +98,13 @@ export const AppContextProvider: ParentComponent = (props) => {
   createEffect(() => set('locale', i18n[1].locale()), cookieOptions);
   createEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // if (!lang.loading) add(i18n[1].locale(), lang() as Record<string, any>);
+    if (lang()) add(i18n[1].locale(), lang() as Record<string, any>);
   });
+
   createEffect(() => {
-    document.documentElement.lang = locale();
+    if (!isServer) {
+      document.documentElement.lang = locale();
+    }
   });
   createEffect(() => {
     if (isDark()) document.documentElement.classList.add('dark');
@@ -120,16 +131,7 @@ export const AppContextProvider: ParentComponent = (props) => {
       <I18nContext.Provider value={i18n}>
         <Title>{t('global.title', {}, 'SolidJS · Reactive Javascript Library')}</Title>
         <Meta name="lang" content={locale()} />
-        <div
-          dir={t('global.dir', {}, 'ltr')}
-          classList={{
-            dark: data.isDark === true,
-          }}
-        >
-          <Show when={props.children}>
-            <div class="dark:bg-solid-gray dark:text-white">{props.children}</div>
-          </Show>
-        </div>
+        <div dir={t('global.dir', {}, 'ltr')}>{props.children}</div>
       </I18nContext.Provider>
     </AppContext.Provider>
   );

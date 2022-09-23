@@ -1,7 +1,7 @@
 import { Component, For } from 'solid-js';
 import Footer from '../../components/Footer';
 import { useI18n } from '@solid-primitives/i18n';
-import { useRouteData, NavLink } from '@solidjs/router';
+import { useRouteData, NavLink } from 'solid-start';
 import { BlogInfo } from './index.data';
 import { useRouteReadyState } from '../../utils/routeReadyState';
 

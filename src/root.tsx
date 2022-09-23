@@ -1,9 +1,7 @@
-import { Component, Suspense, Show, JSX } from 'solid-js';
+import { Suspense, Show, JSX } from 'solid-js';
 import { Title, Meta, } from '@solidjs/meta';
-import { Route, useRouteData, Routes } from '@solidjs/router';
-import { Outlet, Scripts, Link, Html, Head, Body, FileRoutes } from 'solid-start';
+import { Scripts, Html, Head, Body, FileRoutes, Routes, useRouteData } from 'solid-start';
 import { I18nContext, createI18nContext } from '@solid-primitives/i18n';
-import { preventSmoothScrollOnTabbing } from './utils';
 import Header from './components/Header';
 // import RootData from './root.data';
 

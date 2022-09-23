@@ -1,6 +1,6 @@
 import { Component, createMemo, createSignal, For, Show } from 'solid-js';
 import Footer from '../components/Footer';
-import { useRouteData } from '@solidjs/router';
+import { useRouteData } from 'solid-start';
 import { useRouteReadyState } from '../utils/routeReadyState';
 import type { CartUtilities, ShopifyProduct } from '../utils/shopify';
 import { Icon } from 'solid-heroicons';

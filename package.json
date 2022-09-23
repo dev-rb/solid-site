@@ -29,6 +29,7 @@
     "@solidjs/meta": "^0.28.0",
     "@solidjs/router": "^0.4.3",
     "fuse.js": "^6.4.6",
+    "@types/shopify-buy": "npm:@brandboostinggmbh/shopify-buy-types@^2.14.6",
     "github-slugger": "^1.4.0",
     "markdown-it-prism": "^2.1.7",
     "monaco-editor": "0.33.0",

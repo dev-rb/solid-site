@@ -1,7 +1,7 @@
 import { Component, For, Show, createSignal, createMemo } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import Footer from '../components/Footer';
-import { useRouteData, useSearchParams } from '@solidjs/router';
+import { useRouteData, useSearchParams } from 'solid-start';
 import { Resource, ResourceType, ResourceTypeIcons, PackageType } from '../resources/Ecosystem';
 import { ResourcesDataProps } from './Resources.data';
 import Fuse from 'fuse.js';

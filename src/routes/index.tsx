@@ -9,7 +9,7 @@ import {
   createMemo,
   createEffect,
 } from 'solid-js';
-import { Link, useRouteData, useIsRouting } from '@solidjs/router';
+import { Link, useRouteData, useIsRouting } from 'solid-start';
 import { useI18n } from '@solid-primitives/i18n';
 import { createViewportObserver } from '@solid-primitives/intersection-observer';
 import iconBlocks1 from '../assets/icons/blocks1.svg';
@@ -20,11 +20,14 @@ import performant from '../assets/icons/performant.svg';
 import powerful from '../assets/icons/powerful.svg';
 import pragmatic from '../assets/icons/pragmatic.svg';
 import productive from '../assets/icons/productive.svg';
+import { shoppingCart } from 'solid-heroicons/outline';
+import { Icon } from 'solid-heroicons';
 import Footer from '../components/Footer';
 import Benchmarks, { GraphData } from '../components/Benchmarks';
 import { useRouteReadyState } from '../utils/routeReadyState';
+import { isServer } from '@solid-primitives/utils';
 
-// const Repl = lazy(() => import('../components/ReplTab'));
+// const Repl = lazy(() => import('../components/Repl/index'));
 
 const strength_icons: { [key: string]: string } = {
   performant,
@@ -33,18 +36,17 @@ const strength_icons: { [key: string]: string } = {
   productive,
 };
 
-const Home: Component<{}> = () => {
+const Home: Component = () => {
   const isRouting = useIsRouting();
-  // const data = useRouteData<{ benchmarks: Array<GraphData> }>();
+  const data = useRouteData<{ benchmarks: GraphData[] }>();
   const [t] = useI18n();
   const [loadRepl, setLoadRepl] = createSignal(false);
-  const [observeInteraction] = createViewportObserver({ threshold: 0.5 });
+  // const [observeInteraction] = createViewportObserver({ threshold: 0.4 });
   let playgroundRef!: HTMLElement;
 
-  onMount(() => {
-    // @ts-ignore
-    observeInteraction(playgroundRef, (entry) => entry.isIntersecting && setLoadRepl(true));
-  });
+  // onMount(() => {
+  //   observeInteraction(playgroundRef, (entry) => entry.isIntersecting && setLoadRepl(true));
+  // });
 
   createEffect(() => {
     if (isRouting()) {
@@ -53,19 +55,33 @@ const Home: Component<{}> = () => {
   });
 
   useRouteReadyState();
+
   const chevron = createMemo(() => {
     const direction = t('global.dir', {}, 'ltr') == 'rtl' ? 'chevron-left' : 'chevron-right';
     return `chevron ${direction}`;
   });
 
   return (
-    <div class="dark:bg-solid-gray flex flex-col pt-8">
-      <div class="lg:my-2 px-0 lg:px-12 container flex flex-col lg:space-y-10 pt-10 bg-blocks-one bg-contain bg-no-repeat bg-left-top">
-        <section class="grid sm:grid-cols-2 lg:grid-cols-4 m-5 lg:m-0 space-y-4 lg:space-y-0 lg:space-x-4 rounded-lg">
+    <div class="flex flex-col">
+      <div class="px-0 lg:px-12 container flex flex-col lg:space-y-10 md:pt-10 md:bg-blocks-one bg-contain bg-no-repeat bg-left-top md:dark:bg-blocks-one-dark">
+        <a
+          href="/store"
+          class="flex items-center space-x-3 justify-center text-center text-solid-medium dark:bg-solid-light/40 dark:text-white m-5 md:mx-0 hover:text-solid-dark transition duration-500 bg-slate-200/50 max-width-[300px] rounded-lg p-5 text-lg"
+        >
+          <Icon class="w-10" stroke-width={1.5} path={shoppingCart} />
+          <div>
+            Visit the new <b>Solid Store</b> for stickers, t-shirts and more!
+          </div>
+        </a>
+        <section class="grid sm:grid-cols-2 lg:grid-cols-4 space-y-4 lg:space-y-0 lg:space-x-4 rounded-lg">
           <For each={t('home.strengths')}>
             {(strength: { icon: string; label: string; description: string }) => (
-              <div class="px-8 py-4 mt-4 md:py-10 border-b border-0 md:border-r lg:border-b-0 lg:ml-4 lg:mt-0 last:border-none">
-                <img class="w-12 mb-5" src={strength_icons[strength.icon]} alt={strength.label} />
+              <div class="px-10 py-4 mt-4 md:py-10 border-b border-0 dark:border-solid-darkLighterBg md:border-r lg:border-b-0 lg:ml-4 lg:mt-0 last:border-none">
+                <img
+                  class="w-12 mb-5 dark:brightness-150"
+                  src={strength_icons[strength.icon]}
+                  alt={strength.label}
+                />
                 <h3 class="text-xl mb-2 font-semibold">{strength.label}</h3>
                 <p class="text-base">{strength.description}</p>
               </div>
@@ -74,19 +90,19 @@ const Home: Component<{}> = () => {
         </section>
       </div>
       <div class="lg:my-10 px-0 lg:px-12 container flex flex-col lg:space-y-10">
-        <section class="border-2 m-5 lg:m-0 border-gray-200 text-black flex rounded-lg defer">
+        <section class="border-2 m-5 lg:m-0 border-gray-200 dark:border-solid-darkLighterBg rounded-lg defer">
           <ul class="flex flex-col md:flex-row justify-center w-full">
             <For each={t('home.facts')}>
               {(fact: { label: string; detail: string; link: string }) => {
                 const d = (
                   <>
                     <strong class="font-semibold mr-1">{fact.label}</strong>
-                    <span class="block text-sm">{fact.detail}</span>
+                    <span class="flex items-center text-sm">{fact.detail}</span>
                   </>
                 );
                 return (
                   <li
-                    class="transition border-gray-100 border-r"
+                    class="transition border-gray-100 dark:border-solid-darkLighterBg border-r last:border-r-0"
                     classList={{
                       'hover:bg-solid-dark': !!fact.link,
                       'hover:text-white': !!fact.link,
@@ -118,20 +134,19 @@ const Home: Component<{}> = () => {
         >
           <div
             dir="ltr"
-            style="height:600px; width:100%;"
+            style="height: 70vh; max-height: 600px; min-height: 475px; width: 100%;"
             class="rounded-lg overflow-hidden flex-1 shadow-2xl order-2 lg:order-1 rtl:order-2 mt-10 lg:mt-0"
           >
-            <Show when={loadRepl()}>
+            {/* <Show when={loadRepl()}>
               <Suspense
                 fallback={
                   <div class="flex h-full justify-center items-center">Starting playground...</div>
                 }
-              >
-                {/* <Repl
+              > */}
+            {/* <Repl
                   tabs={[
                     {
-                      name: 'main1',
-                      type: 'tsx',
+                      name: 'main.jsx',
                       source: `import { render } from "solid-js/web";
 import { onCleanup, createSignal } from "solid-js";
 
@@ -149,8 +164,8 @@ render(() => <CountingComponent />, document.getElementById("app"));`,
                     },
                   ]}
                 /> */}
-              </Suspense>
-            </Show>
+            {/* </Suspense>
+            </Show> */}
           </div>
           <div class="flex flex-col justify-center flex-1 order-1 lg:order-2 rtl:order-1">
             <img class="w-20" src={iconBlocks1} alt="" />
@@ -161,16 +176,16 @@ render(() => <CountingComponent />, document.getElementById("app"));`,
               {(copy: string) => <p class="mt-9 leading-7">{copy}</p>}
             </For>
             <Link
-              class={`button inline-block mt-8 text-solid-default font-semibold hover:text-gray-500 ${chevron()}`}
+              class={`button inline-block mt-8 text-solid-default dark:text-solid-darkdefault font-semibold hover:text-gray-500 dark:hover:text-gray-300 ${chevron()}`}
               href={t('home.example.link')}
             >
               {t('home.example.link_label')}
             </Link>
           </div>
         </section>
-        <section class="dark:bg-gray-500 bg-gray-50 py-16 grid grid-cols-1 lg:grid-cols-2 px-5 lg:px-16 defer rounded-br-6xl lg:bg-blocks-three bg-no-repeat bg-contain bg-right rtl:bg-left">
+        <section class="dark:bg-solid-darkLighterBg bg-solid-lightgray py-16 grid grid-cols-1 lg:grid-cols-2 md:px-5 lg:px-16 defer rounded-br-6xl lg:bg-blocks-three bg-no-repeat bg-contain bg-right rtl:bg-left">
           <div
-            class="px-9 py-4 bg-gray-50 2xl:bg-opacity-0 bg-opacity-80 rounded-lg"
+            class="px-10 py-4 2xl:bg-opacity-0 bg-opacity-80 rounded-lg"
             classList={{ 'xl:bg-opacity-0': t('global.dir', {}, 'ltr') === 'ltr' }}
           >
             <img class="w-16" src={sandbox} alt="" />
@@ -180,38 +195,38 @@ render(() => <CountingComponent />, document.getElementById("app"));`,
             <p class="text-2xl mt-2">{t('home.reactivity.subheadline')}</p>
             <p class="mt-6 leading-7">{t('home.reactivity.copy')}</p>
             <a
-              class={`button inline-block mt-8 text-solid-default font-semibold hover:text-gray-500 ${chevron()}`}
+              class={`button inline-block mt-8 text-solid-default dark:text-solid-darkdefault font-semibold hover:text-gray-500 dark:hover:text-gray-300 ${chevron()}`}
               href={t('home.reactivity.link')}
             >
               {t('home.reactivity.link_label')}
             </a>
           </div>
         </section>
-        <section class="py-20 px-10 lg:px-10 flex flex-col space-y-10 lg:space-y-0 lg:flex-row lg:space-x-32 rtl:space-x-0">
+        <section class="py-20 px-10 lg:px-10 flex flex-col gap-x-32 space-y-10 lg:space-y-0 lg:flex-row">
           <div class="flex flex-wrap items-center flex-1 rtl:ml-10">
-            {/* <Benchmarks list={data.benchmarks} /> */}
+            <Benchmarks list={data.benchmarks} />
           </div>
-          <div class="flex flex-col justify-center flex-1 bg-no-repeat">
+          <div class="flex flex-col justify-around flex-1 bg-no-repeat">
             <img class="w-20" src={iconBlocks2} alt="" />
             <h2 class="mt-6 text-3xl font-semibold text-solid">
-              {t('home.performance.headline')[0]}
+              {t('home.performance.headline.0')}
             </h2>
             <h2 class="m3-6 text-2xl font-semibold text-solid">
-              {t('home.performance.headline')[1]}
+              {t('home.performance.headline.1')}
             </h2>
             <p class="leading-7 mt-9">{t('home.performance.copy')}</p>
             <a
-              class={`button inline-block mt-8 text-solid-default font-semibold hover:text-gray-500 ${chevron()}`}
+              class={`button inline-block py-3 text-solid-default dark:text-solid-darkdefault font-semibold hover:text-gray-500 dark:hover:text-gray-300 ${chevron()}`}
               href={t('home.performance.link')}
             >
               {t('home.performance.link_label')}
             </a>
           </div>
         </section>
-        <section class="dark:bg-gray-500 bg-solid-lightgray rounded-lg grid md:grid-cols-2 py-20 px-10 lg:px-20 space-x-12">
+        <section class="dark:bg-solid-darkLighterBg bg-solid-lightgray rounded-3xl grid md:grid-cols-2 py-20 px-10 lg:px-20 md:space-x-12">
           <div class="gridflex flex-wrap content-center">
             <h2 class="text-2xl font-semibold">
-              <img class="w-10 mb-5 block" src={flag} alt="" />
+              <img class="w-10 mb-5 block dark:invert" src={flag} alt="" />
               {t('home.features.headline')}
             </h2>
             <p class="text-xl mt-4">{t('home.features.copy')}</p>
@@ -219,7 +234,7 @@ render(() => <CountingComponent />, document.getElementById("app"));`,
           <ul class="flex flex-wrap">
             <For each={t('home.features.list')}>
               {(feature: string) => (
-                <li class="feature-block border-gray-300 mr-3 mt-3 px-5 py-3">
+                <li class="feature-block border-gray-300 dark:border-gray-700 w-full md:w-auto mr-3 mt-3 px-5 py-3">
                   <span class="block text-sm">{feature}</span>
                 </li>
               )}

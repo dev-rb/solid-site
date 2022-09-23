@@ -10,7 +10,7 @@ import {
 } from 'solid-js';
 import { Transition } from 'solid-transition-group';
 import { useI18n } from '@solid-primitives/i18n';
-import { useLocation, Link } from 'solid-start';
+import { useLocation, NavLink } from 'solid-start';
 import Nav from './Nav';
 import { useAppContext } from '../AppContext';
 import logo from '../assets/logo.svg';
@@ -59,85 +59,85 @@ const Header: ParentComponent<{ title?: string }> = () => {
   );
   return (
     <>
-      <Transition onEnter={onEnterBigHeader} onExit={onExitBigHeader}>
-        <Show when={showHeaderSplash()}>
-          <header
-            id="header"
-            class="relative mx-2 rounded-br-3xl rounded-bl-3xl bg-gradient-to-r from-solid-light via-solid-medium/85 to-solid-dark/80 dark:from-solid-light/40 dark:via-solid-medium/80 dark:to-solid-medium/90 text-white overflow-hidden z-[1]"
+      {/* <Transition onEnter={onEnterBigHeader} onExit={onExitBigHeader}> */}
+      <Show when={showHeaderSplash()}>
+        <header
+          id="header"
+          class="relative mx-2 rounded-br-3xl rounded-bl-3xl bg-gradient-to-r from-solid-light via-solid-medium/85 to-solid-dark/80 dark:from-solid-light/40 dark:via-solid-medium/80 dark:to-solid-medium/90 text-white overflow-hidden z-[1]"
+        >
+          <PageLoadingBar active={routeReadyState().loadingBar} postion="bottom"></PageLoadingBar>
+          <a
+            target="_blank"
+            href={t('home.ukraine.link', {}, 'https://www.un.org/en/globalceasefire')}
+            class="absolute w-full text-center text-[15px] p-3 bg-yellow-500 hover:bg-yellow-500/80 transition duration-200"
           >
-            <PageLoadingBar active={routeReadyState().loadingBar} postion="bottom"></PageLoadingBar>
-            <a
-              target="_blank"
-              href={t('home.ukraine.link', {}, 'https://www.un.org/en/globalceasefire')}
-              class="absolute w-full text-center text-[15px] p-3 bg-yellow-500 hover:bg-yellow-500/80 transition duration-200"
-            >
-              <span class="text-whit">
-                <b>{t('home.ukraine.support', {}, 'Support Global Ceasefire!')}</b>&nbsp;
-                {t('home.ukraine.petition', {}, 'End war in Ukraine and all global conflict →')}
-              </span>{' '}
+            <span class="text-whit">
+              <b>{t('home.ukraine.support', {}, 'Support Global Ceasefire!')}</b>&nbsp;
+              {t('home.ukraine.petition', {}, 'End war in Ukraine and all global conflict →')}
+            </span>{' '}
+          </a>
+          <div class="md:bg-hero dark:from-bg-gray-700 bg-no-repeat bg-right rtl:bg-left px-10">
+            <a target="_blank" href="https://www.youtube.com/watch?v=pFah4QqiUAg&t=9503s">
+              <img
+                class="hidden md:block absolute md:top-20 lg:top-32 md:right-20 md:w-40 lg:w-72"
+                src="/img/award-badge.svg"
+              />
             </a>
-            <div class="md:bg-hero dark:from-bg-gray-700 bg-no-repeat bg-right rtl:bg-left px-10">
-              <a target="_blank" href="https://www.youtube.com/watch?v=pFah4QqiUAg&t=9503s">
+            <section class="px-3 lg:px-12 container space-y-10 lg:pb-20 lg:pt-52 py-10">
+              <div class="flex items-center mt-10 w-[calc(100%+40px)] space-y-4 lg:space-y-0 lg:space-x-4 lg:mt-0">
                 <img
-                  class="hidden md:block absolute md:top-20 lg:top-32 md:right-20 md:w-40 lg:w-72"
-                  src="/img/award-badge.svg"
+                  class="w-[6rem] h-30 lg:w-48"
+                  style="filter: drop-shadow(-10px 4px 8px rgb(0 22 100 / 10%))"
+                  src={logo}
+                  alt="Solid logo"
+                  width="166"
+                  height="155.3"
                 />
-              </a>
-              <section class="px-3 lg:px-12 container space-y-10 lg:pb-20 lg:pt-52 py-10">
-                <div class="flex items-center mt-10 w-[calc(100%+40px)] space-y-4 lg:space-y-0 lg:space-x-4 lg:mt-0">
-                  <img
-                    class="w-[6rem] h-30 lg:w-48"
-                    style="filter: drop-shadow(-10px 4px 8px rgb(0 22 100 / 10%))"
-                    src={logo}
-                    alt="Solid logo"
-                    width="166"
-                    height="155.3"
-                  />
-                  <img
-                    class="w-52 min-w-0 h-15 lg:w-80"
-                    src={wordmark}
-                    alt="Solid wordmark"
-                    width="306.42"
-                    height="70.7"
-                  />
+                <img
+                  class="w-52 min-w-0 h-15 lg:w-80"
+                  src={wordmark}
+                  alt="Solid wordmark"
+                  width="306.42"
+                  height="70.7"
+                />
+              </div>
+              <h2 class="lg:font-semibold text-[26px] sm:text-3xl leading-8 lg:text-4xl lg:leading-10 xl:max-w-3xl">
+                {t('home.hero')}
+              </h2>
+              <div class="space-y-2 md:flex md:space-y-0 md:space-x-2">
+                <div>
+                  <NavLink
+                    href="/guides/getting-started"
+                    class="bg-solid-medium flex justify-center items-center px-5 py-3 text-md rounded-lg  hover:bg-solid-gray transition"
+                  >
+                    <span class="mt-0.5 ">{t('home.get_started', {}, 'Get Started')}</span>
+                    <Icon stroke-width="3" class="w-5" path={chevronRight} />
+                  </NavLink>
                 </div>
-                <h2 class="lg:font-semibold text-[26px] sm:text-3xl leading-8 lg:text-4xl lg:leading-10 xl:max-w-3xl">
-                  {t('home.hero')}
-                </h2>
-                <div class="space-y-2 md:flex md:space-y-0 md:space-x-2">
-                  <div>
-                    <Link
-                      href="/guides/getting-started"
-                      class="bg-solid-medium flex justify-center items-center px-5 py-3 text-md rounded-lg  hover:bg-solid-gray transition"
-                    >
-                      <span class="mt-0.5 ">{t('home.get_started', {}, 'Get Started')}</span>
-                      <Icon stroke-width="3" class="w-5" path={chevronRight} />
-                    </Link>
-                  </div>
-                  <div class="flex flex-col space-y-1">
-                    <Link
-                      // target="_blank"
-                      href="https://www.youtube.com/watch?v=hw3Bx5vxKl0"
-                      class="bg-solid-light flex items-center px-5 py-3 text-md rounded-lg hover:bg-solid-gray transition"
-                    >
-                      <Icon stroke-width="2" class="w-6 mr-2" path={play} />
-                      {t('home.intro_video', {}, 'Intro to Solid (100 seconds)')}
-                    </Link>
-                    <Link
-                      // target="_blank"
-                      href="https://www.youtube.com/watch?v=J70HXl1KhWE"
-                      class="bg-solid-light bg-opacity-50 flex items-center px-5 py-3 text-md rounded-lg hover:bg-solid-gray transition"
-                    >
-                      <Icon stroke-width="2" class="w-6 mr-2" path={play} />
-                      {t('home.intro_video_advanced', {}, 'Advanced intro (10 minutes)')}
-                    </Link>
-                  </div>
+                <div class="flex flex-col space-y-1">
+                  <NavLink
+                    // target="_blank"
+                    href="https://www.youtube.com/watch?v=hw3Bx5vxKl0"
+                    class="bg-solid-light flex items-center px-5 py-3 text-md rounded-lg hover:bg-solid-gray transition"
+                  >
+                    <Icon stroke-width="2" class="w-6 mr-2" path={play} />
+                    {t('home.intro_video', {}, 'Intro to Solid (100 seconds)')}
+                  </NavLink>
+                  <NavLink
+                    // target="_blank"
+                    href="https://www.youtube.com/watch?v=J70HXl1KhWE"
+                    class="bg-solid-light bg-opacity-50 flex items-center px-5 py-3 text-md rounded-lg hover:bg-solid-gray transition"
+                  >
+                    <Icon stroke-width="2" class="w-6 mr-2" path={play} />
+                    {t('home.intro_video_advanced', {}, 'Advanced intro (10 minutes)')}
+                  </NavLink>
                 </div>
-              </section>
-            </div>
-          </header>
-        </Show>
-      </Transition>
+              </div>
+            </section>
+          </div>
+        </header>
+      </Show>
+      {/* </Transition> */}
       <Nav showLogo={showLogo()} />
       <div>
         <Transition onEnter={onEnterSmallHeader} onExit={onExitSmallHeader}>

@@ -1,5 +1,6 @@
 import { ParentComponent, For, createMemo, createSignal, Show, on, createComputed } from 'solid-js';
-import { Link, NavLink } from '@solidjs/router';
+import { NavLink } from 'solid-start';
+// import { Link, NavLink } from '@solidjs/router';
 import { useI18n } from '@solid-primitives/i18n';
 import { makeIntersectionObserver } from '@solid-primitives/intersection-observer';
 import { debounce } from '@solid-primitives/scheduled';
@@ -127,7 +128,7 @@ const Nav: ParentComponent<{ showLogo?: boolean; filled?: boolean }> = (props) =
                 }`}
               ref={logoEl}
             >
-              <Link
+              <NavLink
                 href="/"
                 onClick={onClickLogo}
                 noScroll
@@ -140,7 +141,7 @@ const Nav: ParentComponent<{ showLogo?: boolean; filled?: boolean }> = (props) =
                   src={ukraine}
                   alt=""
                 />
-              </Link>
+              </NavLink>
               <span id="ukraine-support" hidden>
                 {t('home.ukraine.support', {}, 'We stand with Ukraine.')}
               </span>

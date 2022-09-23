@@ -10,7 +10,7 @@ import {
   batch,
   ErrorBoundary,
 } from 'solid-js';
-import { useRouteData, NavLink } from 'solid-app-router';
+import { useRouteData, NavLink } from 'solid-start';
 import { Icon } from 'solid-heroicons';
 import { arrowLeft, arrowRight, chevronDown, chevronDoubleRight } from 'solid-heroicons/solid';
 

@@ -1,4 +1,4 @@
-import { useLocation, RouteDataFunc } from '@solidjs/router';
+import { useLocation, RouteDataFunc, useParams } from 'solid-start';
 import { createResource } from 'solid-js';
 import { useI18n } from '@solid-primitives/i18n';
 import { DocFile, getApi } from '@solid.js/docs';
@@ -12,8 +12,9 @@ export interface DocData {
 const DocsData: RouteDataFunc<DocData> = () => {
   const location = useLocation();
   const [, { locale }] = useI18n();
+  const sParams = useParams<{ locale: string }>();
 
-  const lang = () => (location.query.locale ? location.query.locale : locale());
+  const lang = () => (sParams.locale ? sParams.locale : locale());
   const [resource] = createResource(lang, async (lang) => {
     const requestedLang = await getApi(lang);
     if (requestedLang) return { doc: requestedLang, fallback: false };

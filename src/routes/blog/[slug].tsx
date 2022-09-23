@@ -1,10 +1,13 @@
-import { Component, Show, createMemo } from 'solid-js';
+import { Component, Show, createMemo, JSX } from 'solid-js';
 import { useI18n } from '@solid-primitives/i18n';
-import { useRouteData, NavLink } from '@solidjs/router';
+import { useRouteData, NavLink } from 'solid-start';
 import { useRouteReadyState } from '../../utils/routeReadyState';
-// import SolidMarkdown from 'solid-markdown';
 import { BlogInfo } from './index.data';
 import Footer from '../../components/Footer';
+import { dynamic } from '../../utils/dynamic';
+
+
+const DSolidMarkdown = dynamic(() => import('solid-markdown')) as (props: any) => JSX.Element;
 
 export const BlogArticle: Component = () => {
     const [t] = useI18n();
@@ -12,9 +15,10 @@ export const BlogArticle: Component = () => {
         article: string;
         loading: boolean;
         details: BlogInfo;
-        archive: boolean;
-        articles: { [id: string]: BlogInfo };
+        // archive: boolean;
+        // articles: { [id: string]: BlogInfo };
     }>();
+    console.log("Blog data: ", data)
     useRouteReadyState();
     const chevron = createMemo(() =>
         t('global.dir', {}, 'ltr') == 'rtl' ? 'chevron-right' : 'chevron-left',
@@ -41,7 +45,7 @@ export const BlogArticle: Component = () => {
                                 </div>
                                 <hr class="mt-10 w-3/6 mx-auto" />
                                 <article class="my-10 prose mx-auto">
-                                    {/* <SolidMarkdown children={data.article} /> */}
+                                    <DSolidMarkdown children={data.article} />
                                 </article>
                                 <hr class="mt-10 w-3/6 mx-auto" />
                                 <div class="flex flex-row justify-center mt-10">

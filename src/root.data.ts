@@ -1,11 +1,12 @@
 import { createEffect, createResource, createSignal } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { RouteDataFunc } from '@solidjs/router';
+import { RouteDataFunc } from 'solid-start';
 import { createCookieStorage } from '@solid-primitives/storage';
 import { createI18nContext } from '@solid-primitives/i18n';
 import { Setter } from 'solid-js';
+import { createStore } from 'solid-js/store';
 
-const langs: { [lang: string]: any } = {
+const langs: { [lang: string]: () => Promise<any> } = {
   en: async () => (await import('../lang/en/en')).default(),
   it: async () => (await import('../lang/it/it')).default(),
   de: async () => (await import('../lang/de/de')).default(),
@@ -17,7 +18,13 @@ const langs: { [lang: string]: any } = {
   ru: async () => (await import('../lang/ru/ru')).default(),
   fa: async () => (await import('../lang/fa/fa')).default(),
   tr: async () => (await import('../lang/tr/tr')).default(),
+  tl: async () => (await import('../lang/tl/tl')).default(),
+  'ko-kr': async () => (await import('../lang/ko-kr/ko-kr')).default(),
   'zh-cn': async () => (await import('../lang/zh-cn/zh-cn')).default(),
+  'zh-tw': async () => (await import('../lang/zh-tw/zh-tw')).default(),
+  es: async () => (await import('../lang/es/es')).default(),
+  pl: async () => (await import('../lang/pl/pl')).default(),
+  uk: async () => (await import('../lang/uk/uk')).default(),
 };
 
 type DataParams = {
@@ -28,12 +35,10 @@ type DataParams = {
 type StoreageType = Setter<{ dark: boolean, locale: string }>;
 
 const RootData: RouteDataFunc = (props) => {
-  const [settings, set] = !isServer
-    ? createCookieStorage<{ dark: string; locale: string }>()
-    : createSignal({ dark: false, locale: 'en' });
+  const [settings, set] = createStore({ dark: false, locale: 'en' });
   const browserLang = !isServer ? navigator.language.slice(0, 2) : 'en';
   if (props.location.query.locale) {
-    set('locale' as keyof StoreageType, props.location.query.locale);
+    set('locale', props.location.query.locale);
   } else if (!settings.locale && langs.hasOwnProperty(browserLang)) {
     set('locale', browserLang);
   }
@@ -54,10 +59,10 @@ const RootData: RouteDataFunc = (props) => {
   });
   return {
     set isDark(value) {
-      settings.dark = value === true ? 'true' : 'false';
+      settings.dark = value === true ? true : false;
     },
     get isDark() {
-      return settings.dark === 'true' ? true : false;
+      return settings.dark === true ? true : false;
     },
     get i18n() {
       return i18n;

@@ -9,7 +9,7 @@ import {
   Accessor,
   ParentComponent,
 } from 'solid-js';
-import { useRouteData } from '@solidjs/router';
+import { useRouteData } from 'solid-start';
 import { createScrollPosition } from '@solid-primitives/scroll';
 import { throttle } from '@solid-primitives/scheduled';
 import SideContent from '../components/layout/SideContent';
